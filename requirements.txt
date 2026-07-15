@@ -1,0 +1,4 @@
+flet==0.86.0
+PyMySQL==1.2.0
+pytest==9.0.3
+pytest-timeout==2.4.0

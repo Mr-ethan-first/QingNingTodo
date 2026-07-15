@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# PyInstaller
+build/
+dist/
+dist_new
+*.spec
+
+# 临时/日志
+_build_out.txt
+_build_err.txt
+_pytest_out.txt
+_pytest_err.txt
+

@@ -1,0 +1,469 @@
+1211 INFO: Flet client found in cache: C:\Users\Administrator\.flet\client\flet-desktop-full-0.86.0
+10202 INFO: PyInstaller: 6.20.0, contrib hooks: 2026.6
+10314 INFO: Python: 3.13.9 (conda)
+10403 INFO: Platform: Windows-11-10.0.26200-SP0
+10439 INFO: Python environment: C:\mySoftware\Anaconda3
+10468 INFO: wrote D:\WorkSpace\cloudbuddy\qingNingTodo\番茄ToDo.spec
+10618 INFO: Module search paths (PYTHONPATH):
+['C:\\mySoftware\\Anaconda3\\Scripts\\flet.EXE',
+ 'C:\\mySoftware\\Anaconda3\\python313.zip',
+ 'C:\\mySoftware\\Anaconda3\\DLLs',
+ 'C:\\mySoftware\\Anaconda3\\Lib',
+ 'C:\\mySoftware\\Anaconda3',
+ 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages',
+ 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\win32',
+ 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\win32\\lib',
+ 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\pythonwin',
+ 'D:\\WorkSpace\\cloudbuddy\\qingNingTodo']
+14990 INFO: checking Analysis
+14994 INFO: Building Analysis because Analysis-00.toc is non existent
+14995 INFO: Looking for Python shared library...
+14997 INFO: Using Python shared library: C:\mySoftware\Anaconda3\python313.dll
+14998 INFO: Running Analysis Analysis-00.toc
+14998 INFO: Target bytecode optimization level: 0
+15000 INFO: Initializing module dependency graph...
+15002 INFO: Initializing module graph hook caches...
+15061 INFO: Analyzing modules for base_library.zip ...
+27343 INFO: Processing standard module hook 'hook-encodings.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+33826 INFO: Processing standard module hook 'hook-pickle.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+35906 INFO: Processing standard module hook 'hook-heapq.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+36791 INFO: Caching module dependency graph...
+36990 INFO: Analyzing D:\WorkSpace\cloudbuddy\qingNingTodo\src\main.py
+37061 INFO: Processing standard module hook 'hook-flet.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\flet_cli\\__pyinstaller'
+38381 INFO: Processing standard module hook 'hook-multiprocessing.util.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+38709 INFO: Processing standard module hook 'hook-xml.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+39229 INFO: Processing standard module hook 'hook-_ctypes.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+40063 INFO: Processing standard module hook 'hook-platform.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+41113 INFO: Processing pre-safe-import-module hook 'hook-typing_extensions.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+41117 INFO: SetuptoolsInfo: initializing cached setuptools info...
+45882 INFO: Processing standard module hook 'hook-cryptography.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+54421 INFO: hook-cryptography: cryptography uses dynamically-linked OpenSSL: 'C:\\mySoftware\\Anaconda3\\Library\\bin\\libssl-3-x64.dll'
+54689 INFO: Processing standard module hook 'hook-bcrypt.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+55791 INFO: Processing standard module hook 'hook-certifi.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+56160 INFO: Processing standard module hook 'hook-anyio.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+61041 INFO: Processing standard module hook 'hook-difflib.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+61143 INFO: Processing standard module hook 'hook-pygments.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+71334 INFO: Processing standard module hook 'hook-chardet.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+72701 INFO: Processing standard module hook 'hook-rich.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+76768 INFO: Processing standard module hook 'hook-IPython.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+80807 INFO: Processing standard module hook 'hook-xml.dom.domreg.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+81142 INFO: Processing standard module hook 'hook-numpy.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+81418 WARNING: Conda distribution '__win', dependency of 'numpy', was not found. If you installed this distribution with pip then you may ignore this warning.
+82844 INFO: Processing standard module hook 'hook-sysconfig.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+83518 INFO: Processing standard module hook 'hook-psutil.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+85702 INFO: Processing standard module hook 'hook-charset_normalizer.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+86913 INFO: Processing standard module hook 'hook-astroid.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+91776 INFO: Processing pre-safe-import-module hook 'hook-gi.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+92164 INFO: Processing standard module hook 'hook-pytest.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+92744 INFO: Processing standard module hook 'hook-py.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+93142 INFO: Processing pre-safe-import-module hook 'hook-packaging.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+93524 INFO: Processing pre-safe-import-module hook 'hook-tomli.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+96158 INFO: Processing standard module hook 'hook-wcwidth.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+97847 INFO: Processing standard module hook 'hook-jedi.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+100362 INFO: Processing standard module hook 'hook-parso.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+101271 INFO: Processing standard module hook 'hook-docutils.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+118656 INFO: Processing standard module hook 'hook-sphinx.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+157298 INFO: Processing standard module hook 'hook-babel.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+157713 INFO: Processing standard module hook 'hook-pytz.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+158038 INFO: Processing standard module hook 'hook-zoneinfo.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+158386 INFO: Processing standard module hook 'hook-jinja2.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+161044 INFO: Processing standard module hook 'hook-xml.etree.cElementTree.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+161087 INFO: Processing standard module hook 'hook-PIL.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+161277 INFO: Processing standard module hook 'hook-PIL.Image.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+165420 INFO: Processing standard module hook 'hook-PIL.ImageFilter.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+175422 INFO: Processing standard module hook 'hook-pydantic.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+183434 INFO: Processing standard module hook 'hook-urllib3.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+183670 INFO: Processing pre-safe-import-module hook 'hook-backports.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+183672 INFO: Setuptools: 'backports' appears to be a full setuptools-vendored copy - creating alias to 'setuptools._vendor.backports'!
+183686 INFO: Processing standard module hook 'hook-setuptools.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+183722 INFO: Processing pre-safe-import-module hook 'hook-distutils.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+183798 INFO: Processing pre-safe-import-module hook 'hook-jaraco.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+183803 INFO: Setuptools: 'jaraco' appears to be a partial setuptools-vendored copy - extending search paths to ['C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\jaraco', 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\setuptools\\_vendor\\jaraco']!
+183805 INFO: Processing pre-safe-import-module hook 'hook-jaraco.functools.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+183829 INFO: Processing pre-safe-import-module hook 'hook-more_itertools.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+184330 INFO: Processing pre-safe-import-module hook 'hook-jaraco.text.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+184332 INFO: Setuptools: 'jaraco.text' appears to be a setuptools-vendored copy - creating alias to 'setuptools._vendor.jaraco.text'!
+184352 INFO: Processing standard module hook 'hook-setuptools._vendor.jaraco.text.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+184356 INFO: Processing pre-safe-import-module hook 'hook-importlib_resources.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+184358 INFO: Processing pre-safe-import-module hook 'hook-jaraco.context.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+184691 INFO: Processing pre-safe-import-module hook 'hook-importlib_metadata.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+184737 INFO: Processing standard module hook 'hook-importlib_metadata.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+184785 INFO: Processing pre-safe-import-module hook 'hook-zipp.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+186010 INFO: Processing pre-safe-import-module hook 'hook-wheel.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+190496 INFO: Processing standard module hook 'hook-langchain.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+192283 INFO: Processing standard module hook 'hook-orjson.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+192533 INFO: Processing standard module hook 'hook-pandas.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+3991 INFO: NumExpr defaulting to 12 threads.
+199672 INFO: Processing standard module hook 'hook-scipy.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+206012 INFO: Processing standard module hook 'hook-pycparser.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+208494 INFO: Processing standard module hook 'hook-dask.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+209349 INFO: Processing standard module hook 'hook-cloudpickle.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+209636 INFO: Processing standard module hook 'hook-numba.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+209929 INFO: Processing standard module hook 'hook-llvmlite.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+220976 INFO: Processing pre-safe-import-module hook 'hook-win32com.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\pre_safe_import_module'
+221162 INFO: Processing standard module hook 'hook-win32com.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+221167 INFO: Processing standard module hook 'hook-pythoncom.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+221325 INFO: Processing standard module hook 'hook-pywintypes.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+224043 INFO: Processing standard module hook 'hook-pyarrow.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+229618 INFO: Processing standard module hook 'hook-fsspec.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+238941 INFO: Processing standard module hook 'hook-scipy.spatial._ckdtree.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+239024 INFO: Processing standard module hook 'hook-scipy.linalg.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+239411 INFO: Processing standard module hook 'hook-scipy.special._ufuncs.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+242718 INFO: Processing standard module hook 'hook-scipy.sparse.csgraph.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+243220 INFO: Processing standard module hook 'hook-scipy.special._ellip_harm_2.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+244390 INFO: Processing standard module hook 'hook-scipy.spatial.transform.rotation.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+246005 INFO: Processing standard module hook 'hook-scipy.stats._stats.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+249031 INFO: Processing standard module hook 'hook-pandas.io.formats.style.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+253342 INFO: Processing standard module hook 'hook-pandas.plotting.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+254212 INFO: Processing standard module hook 'hook-dateutil.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+254461 INFO: Processing pre-safe-import-module hook 'hook-six.moves.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+254817 INFO: Processing standard module hook 'hook-botocore.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+260383 INFO: Processing standard module hook 'hook-openpyxl.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+260644 INFO: Processing standard module hook 'hook-lxml.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+264053 INFO: Processing standard module hook 'hook-lxml.etree.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+266715 INFO: Processing standard module hook 'hook-tables.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+268081 INFO: Processing standard module hook 'hook-sqlalchemy.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+275534 INFO: Processing standard module hook 'hook-sqlite3.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+279011 INFO: Processing standard module hook 'hook-pandas.io.clipboard.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+279526 INFO: Processing standard module hook 'hook-zmq.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+283404 INFO: Processing pre-safe-import-module hook 'hook-platformdirs.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\pre_safe_import_module'
+283422 INFO: Processing standard module hook 'hook-platformdirs.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+284231 INFO: Processing standard module hook 'hook-nbformat.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+284584 INFO: Processing standard module hook 'hook-jsonschema.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+285028 INFO: Processing standard module hook 'hook-lark.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\lark\\__pyinstaller'
+285124 INFO: Processing standard module hook 'hook-regex.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+286764 INFO: Processing standard module hook 'hook-jsonschema_specifications.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+287904 INFO: Processing standard module hook 'hook-shelve.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+288406 INFO: Processing standard module hook 'hook-distributed.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+295744 INFO: Processing standard module hook 'hook-lz4.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+295783 INFO: Processing standard module hook 'hook-h5py.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+300459 INFO: Processing standard module hook 'hook-bokeh.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+304131 INFO: Processing standard module hook 'hook-narwhals.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+307959 INFO: Processing standard module hook 'hook-xyzservices.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+309872 INFO: Processing standard module hook 'hook-argon2.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+310333 INFO: Processing standard module hook 'hook-notebook.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+318071 INFO: Processing standard module hook 'hook-jupyterlab.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+319230 INFO: Processing standard module hook 'hook-ruamel.yaml.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+362773 INFO: Processing standard module hook 'hook-xarray.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+367077 INFO: Processing standard module hook 'hook-patsy.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+369447 INFO: Processing standard module hook 'hook-statsmodels.tsa.statespace.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+3293 INFO: NumExpr defaulting to 12 threads.
+3489 INFO: NumExpr defaulting to 12 threads.
+385423 INFO: Processing standard module hook 'hook-scipy.io.matlab.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+390430 INFO: Processing standard module hook 'hook-websockets.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+399873 INFO: Processing standard module hook 'hook-nltk.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+401594 INFO: NumExpr defaulting to 12 threads.
+405179 INFO: Processing standard module hook 'hook-sklearn.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+406969 INFO: Processing standard module hook 'hook-sklearn.utils.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+407220 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.numpy.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+407307 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.cupy.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+407334 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.torch.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+407413 INFO: Processing standard module hook 'hook-sklearn.externals.array_api_compat.dask.array.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+407833 INFO: Processing standard module hook 'hook-sklearn.metrics.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+4208 INFO: NumExpr defaulting to 12 threads.
+415458 INFO: Processing standard module hook 'hook-sklearn.metrics.cluster.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+415572 INFO: Processing standard module hook 'hook-sklearn.metrics.pairwise.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+415807 INFO: Processing standard module hook 'hook-sklearn.cluster.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+415973 INFO: Processing standard module hook 'hook-sklearn.neighbors.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+416135 INFO: Processing standard module hook 'hook-sklearn.linear_model.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+423265 INFO: Processing standard module hook 'hook-google.api_core.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+425149 INFO: Processing standard module hook 'hook-google.cloud.storage.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+427401 INFO: Processing pre-safe-import-module hook 'hook-tensorflow.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\pre_safe_import_module'
+438280 INFO: Processing standard module hook 'hook-nacl.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+445271 INFO: Processing standard module hook 'hook-black.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+452478 INFO: Processing standard module hook 'hook-blib2to3.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+456129 INFO: Processing standard module hook 'hook-pytokens.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+456626 INFO: Processing standard module hook 'hook-yapf_third_party.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+459004 INFO: Processing standard module hook 'hook-uvicorn.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+463857 INFO: Processing module hooks (post-graph stage)...
+464161 WARNING: Hidden import "charset_normalizer.md__mypyc" not found!
+464824 INFO: Processing standard module hook 'hook-panel.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+476764 INFO: Processing standard module hook 'hook-pyviz_comms.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+479393 INFO: Processing standard module hook 'hook-markdown.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+483405 INFO: Processing standard module hook 'hook-pyecharts.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+484184 INFO: Processing standard module hook 'hook-prettytable.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+485272 INFO: Processing standard module hook 'hook-plotly.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+503728 INFO: Processing standard module hook 'hook-skimage.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+503992 INFO: Processing standard module hook 'hook-skimage.measure.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+517301 INFO: Processing standard module hook 'hook-skimage.filters.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+523742 INFO: Processing standard module hook 'hook-intake.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+525011 INFO: Processing standard module hook 'hook-altair.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+528356 INFO: Processing standard module hook 'hook-nbconvert.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+529036 INFO: Processing standard module hook 'hook-tinycss2.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+529138 INFO: Processing standard module hook 'hook-mistune.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+536639 INFO: Processing standard module hook 'hook-lxml.isoschematron.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+536970 WARNING: Hidden import "notebook.services.shutdown" not found!
+537154 WARNING: Hidden import "pycparser.lextab" not found!
+537156 WARNING: Hidden import "pycparser.yacctab" not found!
+542924 INFO: Processing standard module hook 'hook-zope.interface.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+545110 INFO: Processing standard module hook 'hook-skimage.exposure.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+549029 INFO: Processing standard module hook 'hook-skimage.morphology.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+549292 INFO: Processing standard module hook 'hook-skimage.draw.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+553149 INFO: Processing standard module hook 'hook-skimage.transform.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+556928 INFO: Processing standard module hook 'hook-skimage.restoration.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+560533 INFO: Processing standard module hook 'hook-skimage.feature.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+564330 INFO: Processing standard module hook 'hook-skimage.color.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+568467 INFO: Processing standard module hook 'hook-pywt.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+568801 INFO: Processing standard module hook 'hook-skimage.metrics.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+573640 INFO: Processing standard module hook 'hook-sklearn.tree.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+573823 INFO: Processing standard module hook 'hook-tinycss2.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+575226 INFO: Processing standard module hook 'hook-PIL.SpiderImagePlugin.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+578957 WARNING: Hidden import "scipy.special._cdflib" not found!
+580690 INFO: Processing standard module hook 'hook-sqlalchemy.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks'
+581780 WARNING: Hidden import "MySQLdb" not found!
+582777 INFO: Processing standard module hook 'hook-lxml.objectify.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+583188 INFO: Processing standard module hook 'hook-tzdata.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+590046 INFO: Performing binary vs. data reclassification (58321 entries)
+628058 INFO: Looking for ctypes DLLs
+629100 INFO: Analyzing run-time hooks ...
+629184 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+629192 INFO: Including run-time hook 'pyi_rth_cryptography_openssl.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks'
+629196 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+629202 INFO: Including run-time hook 'pyi_rth_multiprocessing.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+629208 INFO: Including run-time hook 'pyi_rth_pywintypes.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks'
+629211 INFO: Including run-time hook 'pyi_rth_setuptools.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+629216 INFO: Including run-time hook 'pyi_rth_traitlets.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks'
+629221 INFO: Including run-time hook 'pyi_rth_nltk.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks'
+629224 INFO: Including run-time hook 'pyi_rth_pythoncom.py' from 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks'
+632596 INFO: Creating base_library.zip...
+632671 INFO: Looking for dynamic libraries
+0.01s - Debugger warning: It seems that frozen modules are being used, which may
+0.00s - make the debugger miss breakpoints. Please pass -Xfrozen_modules=off
+0.02s - to python to disable frozen modules.
+0.00s - Note: Debugging will proceed. Set PYDEVD_DISABLE_FILE_VALIDATION=1 to disable this validation.
+Windows fatal exception: code 0xc0000139
+
+Thread 0x000015a8 (most recent call first):
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1321 in create_module
+  File "<frozen importlib._bootstrap>", line 813 in module_from_spec
+  File "<frozen importlib._bootstrap>", line 921 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\gmpy2\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\mpmath\libmp\backend.py", line 70 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\mpmath\libmp\libmpf.py", line 17 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\mpmath\libmp\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\mpmath\ctx_base.py", line 3 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\mpmath\ctx_fp.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\mpmath\__init__.py", line 5 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\__init__.py", line 23 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\build_main.py", line 227 in import_library
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\isolated\_child.py", line 63 in run_next_command
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\isolated\_child.py", line 100 in <module>
+Windows fatal exception: code 0xc0000139
+
+Thread 0x000015a8 (most recent call first):
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1321 in create_module
+  File "<frozen importlib._bootstrap>", line 813 in module_from_spec
+  File "<frozen importlib._bootstrap>", line 921 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\gmpy2\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\external\importtools.py", line 145 in import_module
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\external\gmpy.py", line 139 in _get_gmpy2
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\external\gmpy.py", line 167 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\core\evalf.py", line 26 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\core\expr.py", line 11 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\core\__init__.py", line 9 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap>", line 1310 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\sympy\__init__.py", line 31 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\build_main.py", line 227 in import_library
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\isolated\_child.py", line 63 in run_next_command
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\isolated\_child.py", line 100 in <module>
+Windows fatal exception: code 0xc0000139
+
+Thread 0x000015a8 (most recent call first):
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1321 in create_module
+  File "<frozen importlib._bootstrap>", line 813 in module_from_spec
+  File "<frozen importlib._bootstrap>", line 921 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\gmpy2\__init__.py", line 1 in <module>
+  File "<frozen importlib._bootstrap>", line 488 in _call_with_frames_removed
+  File "<frozen importlib._bootstrap_external>", line 1027 in exec_module
+  File "<frozen importlib._bootstrap>", line 935 in _load_unlocked
+  File "<frozen importlib._bootstrap>", line 1331 in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 1360 in _find_and_load
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\build_main.py", line 227 in import_library
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\isolated\_child.py", line 63 in run_next_command
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\isolated\_child.py", line 100 in <module>
+664736 INFO: Extra DLL search directories (AddDllDirectory): ['C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\google_crc32c\\extra-dll', 'C:\\mySoftware\\Anaconda3\\Lib\\site-packages\\faiss_cpu.libs']
+664770 INFO: Extra DLL search directories (PATH): []
+675036 WARNING: Library not found: could not resolve 'UR_LOADER.dll', dependency of 'C:\\mySoftware\\Anaconda3\\Library\\bin\\omptarget.rtl.unified_runtime.dll'.
+675037 WARNING: Library not found: could not resolve 'impi.dll', dependency of 'C:\\mySoftware\\Anaconda3\\Library\\bin\\mkl_blacs_intelmpi_ilp64.2.dll'.
+675042 WARNING: Library not found: could not resolve 'sycl8.dll', dependency of 'C:\\mySoftware\\Anaconda3\\Library\\bin\\omptarget.sycl.wrap.dll'.
+675043 WARNING: Library not found: could not resolve 'impi.dll', dependency of 'C:\\mySoftware\\Anaconda3\\Library\\bin\\mkl_blacs_intelmpi_lp64.2.dll'.
+677274 INFO: Warnings written to D:\WorkSpace\cloudbuddy\qingNingTodo\build\番茄ToDo\warn-番茄ToDo.txt
+678818 INFO: Graph cross-reference written to D:\WorkSpace\cloudbuddy\qingNingTodo\build\番茄ToDo\xref-番茄ToDo.html
+681037 INFO: checking PYZ
+681039 INFO: Building PYZ because PYZ-00.toc is non existent
+681041 INFO: Building PYZ (ZlibArchive) D:\WorkSpace\cloudbuddy\qingNingTodo\build\番茄ToDo\PYZ-00.pyz
+691678 INFO: Building PYZ (ZlibArchive) D:\WorkSpace\cloudbuddy\qingNingTodo\build\番茄ToDo\PYZ-00.pyz completed successfully.
+692007 INFO: checking PKG
+692022 INFO: Building PKG because PKG-00.toc is non existent
+692023 INFO: Building PKG (CArchive) 番茄ToDo.pkg
+692296 INFO: Building PKG (CArchive) 番茄ToDo.pkg completed successfully.
+692299 INFO: Bootloader C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+692300 INFO: checking EXE
+692301 INFO: Building EXE because EXE-00.toc is non existent
+692301 INFO: Building EXE from EXE-00.toc
+692303 INFO: Copying bootloader EXE to D:\WorkSpace\cloudbuddy\qingNingTodo\build\番茄ToDo\番茄ToDo.exe
+692430 INFO: Copying icon to EXE
+692485 INFO: Copying version information to EXE
+692537 INFO: Copying 0 resources to EXE
+692539 INFO: Embedding manifest in EXE
+692591 INFO: Appending PKG archive to EXE
+692673 INFO: Fixing EXE headers
+694372 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #1 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.05 second(s)...
+694534 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #2 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.06 second(s)...
+694696 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #3 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.06 second(s)...
+694861 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #4 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.06 second(s)...
+695032 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #5 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.07 second(s)...
+695202 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #6 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.07 second(s)...
+695380 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #7 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.08 second(s)...
+695562 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #8 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.08 second(s)...
+695755 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #9 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.09 second(s)...
+695955 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #10 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.10 second(s)...
+696166 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #11 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.11 second(s)...
+696391 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #12 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.12 second(s)...
+696624 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #13 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.14 second(s)...
+696908 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #14 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.17 second(s)...
+697185 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #15 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.20 second(s)...
+697492 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #16 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.25 second(s)...
+697853 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #17 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.33 second(s)...
+698289 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #18 / 20: PermissionError(13, 'Permission denied'). Retrying in 0.50 second(s)...
+698893 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #19 / 20: PermissionError(13, 'Permission denied'). Retrying in 1.00 second(s)...
+699997 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #20 / 20: PermissionError(13, 'Permission denied').
+Traceback (most recent call last):
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\api.py", line 1058, in _retry_operation
+    return func(*args)
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\utils\win32\winutils.py", line 106, in update_exe_pe_checksum
+    with open(exe_path, 'wb') as fp:
+         ~~~~^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'D:\\WorkSpace\\cloudbuddy\\qingNingTodo\\build\\番茄ToDo\\番茄ToDo.exe'
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\mySoftware\Anaconda3\Scripts\flet.EXE\__main__.py", line 5, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\flet\cli.py", line 8, in main
+    flet_cli.cli.main()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\flet_cli\cli.py", line 158, in main
+    args.handler(args)
+    ~~~~~~~~~~~~^^^^^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\flet_cli\commands\pack.py", line 403, in handle
+    PyInstaller.__main__.run(pyi_args)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\__main__.py", line 215, in run
+    run_build(pyi_config, spec_file, **vars(args))
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\__main__.py", line 70, in run_build
+    PyInstaller.building.build_main.main(pyi_config, spec_file, **kwargs)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\build_main.py", line 1275, in main
+    build(specfile, distpath, workpath, clean_build)
+    ~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\build_main.py", line 1213, in build
+    exec(code, spec_namespace)
+    ~~~~^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\WorkSpace\cloudbuddy\qingNingTodo\番茄ToDo.spec", line 23, in <module>
+    exe = EXE(
+        pyz,
+    ...<14 lines>...
+        version='C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\12d673a7-6690-4c79-87cc-fd3516a2f110',
+    )
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\api.py", line 675, in __init__
+    self.__postinit__()
+    ~~~~~~~~~~~~~~~~~^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\datastruct.py", line 184, in __postinit__
+    self.assemble()
+    ~~~~~~~~~~~~~^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\api.py", line 881, in assemble
+    self._retry_operation(winutils.update_exe_pe_checksum, build_name)
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\mySoftware\Anaconda3\Lib\site-packages\PyInstaller\building\api.py", line 1077, in _retry_operation
+    raise RuntimeError(f"Execution of {func_name!r} failed - no more attempts left!") from e
+RuntimeError: Execution of 'update_exe_pe_checksum' failed - no more attempts left!
