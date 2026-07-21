@@ -1,88 +1,134 @@
-"""pytest 公共夹具。
+"""测试配置：设置 offscreen 平台确保 GUI 测试在无显示器环境下运行。
 
-使用独立的测试数据库，避免污染业务数据。
-数据库连接信息可通过环境变量覆盖：
-    TEST_DB_HOST / TEST_DB_PORT / TEST_DB_USER / TEST_DB_PASSWORD / TEST_DB_NAME
-默认：127.0.0.1:3306 root/123456 qingning_todo_pytest
-若数据库不可用，相关测试将被跳过。
+支持通过环境变量 ``QINGNING_TEST_DB_BACKEND`` 强制指定数据库后端：
+- ``mysql``：强制使用 MySQL 后端（若不可用则 skip）
+- ``sqlite``：强制使用 SQLite 后端
+- 未设置时：优先 MySQL（如可用），否则回退 SQLite
 
-为提升速度：数据库与表结构在整个测试会话中只创建一次；
-每个测试前清空业务数据并重新写入种子数据（DELETE 远快于 DROP/CREATE DATABASE）。
+这样既保证 MySQL 集成测试在 CI/有 MySQL 的环境下运行，
+又保证无 MySQL 环境下测试不全部 skip，同时支持分别对两个后端跑全量测试。
 """
 import os
+os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+os.environ.setdefault("QINGNING_TODO_HOME", os.path.join(
+    os.path.dirname(__file__), "..", ".test_data"))
+
 import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from src.config import DBConfig  # noqa: E402
-from src.database.connection import Database, test_connection  # noqa: E402
-
-# 需要在每个测试前清空的业务表（按可安全删除顺序）
-_BUSINESS_TABLES = [
-    "focus_record", "todo", "todo_group", "goal", "future_plan",
-    "checkin_record", "achievement", "focus_whitelist", "lock_schedule",
-    "settings", "white_noise", "user",
-]
+from src.config import DBConfig, AppConfig
+from src.database.connection import test_connection, Database
+from src.database.sqlite_backend import SQLiteDatabase
 
 
-def _test_config() -> DBConfig:
+def _forced_backend() -> str | None:
+    """读取 QINGNING_TEST_DB_BACKEND 环境变量。"""
+    val = os.environ.get("QINGNING_TEST_DB_BACKEND", "").strip().lower()
+    return val or None
+
+
+@pytest.fixture(scope="session")
+def db_config():
     return DBConfig(
-        host=os.environ.get("TEST_DB_HOST", "127.0.0.1"),
-        port=int(os.environ.get("TEST_DB_PORT", "3306")),
-        user=os.environ.get("TEST_DB_USER", "root"),
-        password=os.environ.get("TEST_DB_PASSWORD", "123456"),
-        database=os.environ.get("TEST_DB_NAME", "qingning_todo_pytest"),
+        host="127.0.0.1",
+        port=3306,
+        user="root",
+        password="123456",
+        database="qingning_todo_test",
+        charset="utf8mb4",
     )
 
 
 @pytest.fixture(scope="session")
-def db_config() -> DBConfig:
-    return _test_config()
-
-
-@pytest.fixture(scope="session")
-def _mysql_available(db_config) -> bool:
+def _mysql_available(db_config):
+    """检测 MySQL 是否可用。"""
     ok, _ = test_connection(db_config, check_database=False)
     return ok
 
 
 @pytest.fixture(scope="session")
-def _database(db_config, _mysql_available):
-    """会话级：创建测试库与表结构一次。"""
-    if not _mysql_available:
-        pytest.skip("MySQL 服务不可用，跳过数据库测试")
-
-    import pymysql
-    conn = pymysql.connect(
-        host=db_config.host, port=int(db_config.port),
-        user=db_config.user, password=db_config.password, autocommit=True,
-    )
-    with conn.cursor() as cur:
-        cur.execute(f"DROP DATABASE IF EXISTS `{db_config.database}`")
-    conn.close()
-
-    database = Database(db_config)
-    database.init_database()
-    yield database
-
-    try:
-        database.execute(f"DROP DATABASE IF EXISTS `{db_config.database}`")
-    except Exception:  # noqa: BLE001
-        pass
-    database.close()
+def _sqlite_db():
+    """创建 SQLite 测试数据库。"""
+    app_cfg = AppConfig()
+    app_cfg.ensure_dir()
+    db_path = os.path.join(app_cfg.config_dir, "test.db")
+    # 删除旧测试文件及遗留的 journal/wal 文件，避免上次测试中断导致锁死
+    for suffix in ("", "-journal", "-wal", "-shm"):
+        p = db_path + suffix
+        if os.path.exists(p):
+            try:
+                os.remove(p)
+            except OSError:
+                pass
+    db = SQLiteDatabase(db_path)
+    db.init_database()
+    return db
 
 
-@pytest.fixture()
-def db(_database):
-    """函数级：清空业务数据并重新播种，保证测试隔离。
+@pytest.fixture(scope="session")
+def db(_mysql_available, db_config, _sqlite_db):
+    """返回测试数据库实例。
 
-    使用 DELETE 而非 TRUNCATE：TRUNCATE 属 DDL，在开启 fsync 的
-    环境下每次数百毫秒~秒级，DELETE 则为毫秒级。
+    优先使用 MySQL（如果可用），否则回退到 SQLite。
+    通过 QINGNING_TEST_DB_BACKEND 可强制指定后端以便分别跑全量测试。
+
+    MySQL 模式下，在 init_database 前后会各清理一次表，
+    确保即使上次测试会话异常中断留下脏数据，本次也能从干净状态开始。
     """
-    for table in _BUSINESS_TABLES:
-        _database.execute(f"DELETE FROM `{table}`")
-    # 重新写入种子数据（默认用户、白噪音、成就徽章）
-    _database._seed_data()
-    return _database
+    backend = _forced_backend()
+
+    if backend == "mysql":
+        if not _mysql_available:
+            pytest.skip("QINGNING_TEST_DB_BACKEND=mysql 但 MySQL 不可用")
+        conn = Database(db_config)
+        # 先清理一次，避免上次会话异常中断留下的脏数据影响本次 init
+        _cleanup_mysql_tables(conn)
+        conn.init_database()
+        yield conn
+        # 会话结束后再次清理
+        _cleanup_mysql_tables(conn)
+        conn.close()
+    elif backend == "sqlite":
+        yield _sqlite_db
+    elif _mysql_available:
+        conn = Database(db_config)
+        _cleanup_mysql_tables(conn)
+        conn.init_database()
+        yield conn
+        _cleanup_mysql_tables(conn)
+        conn.close()
+    else:
+        yield _sqlite_db
+
+
+def _cleanup_mysql_tables(conn):
+    """清理 MySQL 测试数据库中的表。
+
+    使用 SET FOREIGN_KEY_CHECKS=0 避免外键约束阻止 DROP，
+    确保即使上次测试会话异常中断也能彻底清理。
+    """
+    try:
+        # 关闭外键约束检查
+        try:
+            conn.execute("SET FOREIGN_KEY_CHECKS=0")
+        except Exception:
+            pass
+        tables = ["interrupt_details", "habit_checkins", "checkin_record",
+                 "focus_record", "todo", "todo_group",
+                 "future_plan", "goal", "focus_whitelist",
+                 "lock_schedule", "settings", "white_noise",
+                 "achievement", "user"]
+        for tb in tables:
+            try:
+                conn.execute(f"DROP TABLE IF EXISTS `{tb}`")
+            except Exception:
+                pass
+        # 重新启用外键约束检查
+        try:
+            conn.execute("SET FOREIGN_KEY_CHECKS=1")
+        except Exception:
+            pass
+    except Exception:
+        pass

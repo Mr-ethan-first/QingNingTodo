@@ -1,9 +1,10 @@
-"""数据库连接管理与连接测试。"""
+"""数据库连接管理与连接测试。
+
+注意：pymysql 仅在需要 MySQL 后端时才导入（惰性导入），
+使得程序在仅使用本地 SQLite 时可完全不依赖 pymysql，便于打包精简。
+"""
 import datetime
 from typing import Optional, Tuple, List, Any
-
-import pymysql
-from pymysql.cursors import DictCursor
 
 from src.config import DBConfig
 from src.database import schema
@@ -18,6 +19,12 @@ def test_connection(db_config: DBConfig, check_database: bool = False) -> Tuple[
     """
     conn = None
     try:
+        from pymysql import OperationalError
+        from pymysql.cursors import DictCursor  # noqa: F401
+        import pymysql
+    except ImportError:
+        return False, "未安装 pymysql，无法使用 MySQL 数据库（请改用本地 SQLite）。"
+    try:
         kwargs = dict(
             host=db_config.host,
             port=int(db_config.port),
@@ -31,7 +38,7 @@ def test_connection(db_config: DBConfig, check_database: bool = False) -> Tuple[
         conn = pymysql.connect(**kwargs)
         server_info = conn.get_server_info()
         return True, f"连接成功！MySQL 服务器版本：{server_info}"
-    except pymysql.err.OperationalError as e:
+    except OperationalError as e:
         code = e.args[0] if e.args else "?"
         msg = e.args[1] if len(e.args) > 1 else str(e)
         if code == 1045:
@@ -56,10 +63,12 @@ class Database:
 
     def __init__(self, db_config: DBConfig):
         self.config = db_config
-        self._conn: Optional[pymysql.connections.Connection] = None
+        self._conn: Optional[Any] = None
 
     # ---- 连接管理 ----
     def connect(self, with_database: bool = True) -> None:
+        import pymysql
+        from pymysql.cursors import DictCursor
         kwargs = dict(
             host=self.config.host,
             port=int(self.config.port),
@@ -94,6 +103,7 @@ class Database:
     def init_database(self) -> None:
         """创建数据库（若不存在），建表并写入初始数据。"""
         # 先不指定 database 连接，创建库
+        import pymysql
         tmp = pymysql.connect(
             host=self.config.host,
             port=int(self.config.port),
@@ -130,14 +140,19 @@ class Database:
             )
         user_id = self.query_one("SELECT id FROM `user` LIMIT 1")["id"]
 
-        # 白噪音（批量插入，减少提交次数）
-        cnt = self.query_one("SELECT COUNT(*) AS c FROM `white_noise`")["c"]
-        if cnt == 0:
-            self.execute_many(
-                "INSERT INTO `white_noise`(name, file_path, category, is_builtin) "
-                "VALUES(%s,%s,%s,%s)",
-                list(schema.DEFAULT_WHITE_NOISE),
-            )
+        # 白噪音（仅插入不存在的内置条目，保持ID稳定）
+        for name, file_path, category, is_builtin in schema.DEFAULT_WHITE_NOISE:
+            existing = self.query_one(
+                "SELECT id FROM `white_noise` WHERE file_path=%s", (file_path,))
+            if not existing:
+                self.execute(
+                    "INSERT INTO `white_noise`(name, file_path, category, is_builtin) "
+                    "VALUES(%s,%s,%s,%s)",
+                    (name, file_path, category, is_builtin))
+            else:
+                self.execute(
+                    "UPDATE `white_noise` SET name=%s, category=%s WHERE file_path=%s",
+                    (name, category, file_path))
 
         # 成就徽章（批量插入）
         cnt = self.query_one(
@@ -149,6 +164,14 @@ class Database:
                 "VALUES(%s,%s,%s,0)",
                 [(user_id, code, title) for code, title in schema.DEFAULT_ACHIEVEMENTS],
             )
+
+        # 默认设置（如果 settings 表为空则插入）
+        existing = self.query_one("SELECT COUNT(*) AS cnt FROM settings")
+        if existing and existing["cnt"] == 0:
+            for key, value, desc in schema.DEFAULT_SETTINGS:
+                self.execute(
+                    "INSERT INTO `settings`(user_id, setting_key, setting_value, updated_at) VALUES(%s,%s,%s,NOW())",
+                    (user_id, key, value))
 
     # ---- 通用执行 ----
     def execute(self, sql: str, params: Optional[tuple] = None) -> int:

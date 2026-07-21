@@ -1,9 +1,24 @@
 """数据访问对象（DAO）。
 
 对各业务实体提供 CRUD 与统计查询。所有方法基于 Database 实例。
+支持 MySQL 和 SQLite 两种后端，通过 Database 接口透明访问。
 """
 import datetime
 from typing import List, Optional
+
+# 兼容 MySQL 和 SQLite 的 IntegrityError
+try:
+    from pymysql.err import IntegrityError as _MySQLError
+except ImportError:
+    _MySQLError = type("DummyMySQLError", (Exception,), {})
+
+try:
+    from sqlite3 import IntegrityError as _SQLiteError
+except ImportError:
+    _SQLiteError = type("DummySQLiteError", (Exception,), {})
+
+# 统一的异常元组，用于捕获两种后端的唯一约束冲突
+DB_INTEGRITY_ERRORS = (_MySQLError, _SQLiteError)
 
 from src.database.connection import Database
 
@@ -48,14 +63,24 @@ class TodoDAO(BaseDAO):
                repeat_type: int = 0, repeat_rule: Optional[str] = None,
                remind_time: Optional[datetime.datetime] = None,
                group_id: Optional[int] = None, background_path: Optional[str] = None,
+               todo_type: int = 0, type: Optional[int] = None,
+               habit_target: Optional[str] = None,
+               habit_unit: Optional[str] = None, hide_after_complete: int = 0,
+               is_amway_mode_exempted: int = 0, custom_break_duration: Optional[int] = None,
                user_id: Optional[int] = None) -> int:
         uid = user_id or self._default_user_id()
+        # 支持 type 和 todo_type 两种参数名（type 优先）
+        actual_type = type if type is not None else todo_type
         return self.db.execute(
             "INSERT INTO `todo`(user_id, group_id, title, timer_type, duration, break_duration, "
             "loop_count, priority, repeat_type, repeat_rule, remind_time, background_path, "
-            "status, created_at) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,0,%s)",
+            "status, sort_order, `type`, hide_after_complete, is_amway_mode_exempted, "
+            "custom_break_duration, habit_target, habit_unit, created_at) "
+            "VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,0,0,%s,%s,%s,%s,%s,%s,%s)",
             (uid, group_id, title, timer_type, duration, break_duration, loop_count, priority,
-             repeat_type, repeat_rule, remind_time, background_path, datetime.datetime.now()),
+             repeat_type, repeat_rule, remind_time, background_path,
+             actual_type, hide_after_complete, is_amway_mode_exempted, custom_break_duration,
+             habit_target, habit_unit, datetime.datetime.now()),
         )
 
     def get(self, todo_id: int) -> Optional[dict]:
@@ -72,7 +97,7 @@ class TodoDAO(BaseDAO):
         if group_id is not None:
             sql += " AND group_id=%s"
             params.append(group_id)
-        sql += " ORDER BY status, priority DESC, sort_order, id DESC"
+        sql += " ORDER BY status, sort_order, priority DESC, id DESC"
         return self.db.query_all(sql, tuple(params))
 
     def update(self, todo_id: int, **fields) -> int:
@@ -80,7 +105,9 @@ class TodoDAO(BaseDAO):
             return 0
         allowed = {"title", "timer_type", "duration", "break_duration", "loop_count",
                    "priority", "repeat_type", "repeat_rule", "remind_time", "group_id",
-                   "background_path", "status", "sort_order", "completed_at"}
+                   "background_path", "status", "sort_order", "completed_at",
+                   "type", "hide_after_complete", "is_amway_mode_exempted",
+                   "custom_break_duration", "habit_target", "habit_unit"}
         sets, params = [], []
         for k, v in fields.items():
             if k in allowed:
@@ -136,10 +163,30 @@ class FocusRecordDAO(BaseDAO):
             (uid, limit),
         )
 
-    def update_name(self, record_id: int, name: str) -> int:
+
+# ---------------- 打断详情 ----------------
+class InterruptDetailDAO(BaseDAO):
+    def create(self, focus_record_id: int, process_name: str, occurred_at: datetime.datetime,
+               user_id=None):
         return self.db.execute(
-            "UPDATE `focus_record` SET record_name=%s WHERE id=%s", (name, record_id)
-        )
+            "INSERT INTO interrupt_details(focus_record_id, process_name, occurred_at) "
+            "VALUES(%s,%s,%s)",
+            (focus_record_id, process_name, occurred_at))
+
+    def list_by_focus(self, focus_record_id: int):
+        return self.db.query_all(
+            "SELECT * FROM interrupt_details WHERE focus_record_id=%s ORDER BY occurred_at",
+            (focus_record_id,))
+
+    def monthly_distribution(self, year_month: str, user_id=None):
+        """月度打断原因分布"""
+        uid = user_id or self._default_user_id()
+        return self.db.query_all(
+            "SELECT id.process_name, COUNT(*) AS cnt FROM interrupt_details id "
+            "JOIN focus_record fr ON id.focus_record_id=fr.id "
+            "WHERE fr.user_id=%s AND DATE_FORMAT(id.occurred_at,'%%Y-%%m')=%s "
+            "GROUP BY id.process_name ORDER BY cnt DESC",
+            (uid, year_month))
 
 
 # ---------------- 统计 ----------------
@@ -150,6 +197,8 @@ class StatsDAO(BaseDAO):
             "SELECT COUNT(*) AS cnt, COALESCE(SUM(actual_duration),0) AS total "
             "FROM `focus_record` WHERE user_id=%s AND is_completed=1", (uid,)
         )
+        if row is None:
+            return {"count": 0, "total_seconds": 0}
         return {"count": row["cnt"], "total_seconds": int(row["total"])}
 
     def today_focus(self, user_id: Optional[int] = None,
@@ -161,6 +210,8 @@ class StatsDAO(BaseDAO):
             "FROM `focus_record` WHERE user_id=%s AND is_completed=1 AND belong_date=%s",
             (uid, today),
         )
+        if row is None:
+            return {"count": 0, "total_seconds": 0}
         return {"count": row["cnt"], "total_seconds": int(row["total"])}
 
     def daily_distribution(self, days: int = 30, user_id: Optional[int] = None) -> List[dict]:
@@ -213,6 +264,84 @@ class StatsDAO(BaseDAO):
             streak += 1
             cur -= datetime.timedelta(days=1)
         return streak
+
+    def todo_distribution(self, start_date, end_date=None, user_id=None):
+        """按待办统计专注时长分布（用于饼图）"""
+        uid = user_id or self._default_user_id()
+        sql = ("SELECT COALESCE(t.title,'未关联') AS name, "
+               "COALESCE(SUM(f.actual_duration),0) AS total, COUNT(*) AS cnt "
+               "FROM focus_record f LEFT JOIN todo t ON f.todo_id=t.id "
+               "WHERE f.user_id=%s AND f.is_completed=1 AND f.belong_date>=%s ")
+        params = [uid, start_date]
+        if end_date:
+            sql += "AND f.belong_date<=%s "
+            params.append(end_date)
+        sql += "GROUP BY t.title ORDER BY total DESC"
+        return self.db.query_all(sql, tuple(params))
+
+    def monthly_hour_heatmap(self, year_month: str, user_id=None):
+        """月度专注时段分布热力图（按日x小时）"""
+        uid = user_id or self._default_user_id()
+        return self.db.query_all(
+            "SELECT DAY(f.belong_date) AS day, HOUR(f.start_time) AS hour, "
+            "SUM(f.actual_duration) AS total "
+            "FROM focus_record f WHERE f.user_id=%s AND f.is_completed=1 "
+            "AND DATE_FORMAT(f.belong_date,'%%Y-%%m')=%s "
+            "GROUP BY DAY(f.belong_date), HOUR(f.start_time) "
+            "ORDER BY day, hour",
+            (uid, year_month))
+
+    def yearly_monthly(self, year: int, user_id=None):
+        """年度月度专注时长"""
+        uid = user_id or self._default_user_id()
+        return self.db.query_all(
+            "SELECT MONTH(f.belong_date) AS month, "
+            "COALESCE(SUM(f.actual_duration),0) AS total, COUNT(*) AS cnt "
+            "FROM focus_record f WHERE f.user_id=%s AND f.is_completed=1 "
+            "AND YEAR(f.belong_date)=%s "
+            "GROUP BY MONTH(f.belong_date) ORDER BY month",
+            (uid, year))
+
+    def hourly_range(self, date, user_id=None):
+        """指定日期按小时统计专注时长（0-23）"""
+        uid = user_id or self._default_user_id()
+        return self.db.query_all(
+            "SELECT HOUR(start_time) AS hour, COALESCE(SUM(actual_duration),0) AS total "
+            "FROM focus_record WHERE user_id=%s AND is_completed=1 "
+            "AND belong_date=%s GROUP BY HOUR(start_time) ORDER BY hour",
+            (uid, date))
+
+    def daily_range(self, start_date, end_date, user_id=None):
+        """指定日期范围每日专注时长"""
+        uid = user_id or self._default_user_id()
+        return self.db.query_all(
+            "SELECT belong_date, COALESCE(SUM(actual_duration),0) AS total, COUNT(*) AS cnt "
+            "FROM focus_record WHERE user_id=%s AND is_completed=1 "
+            "AND belong_date>=%s AND belong_date<=%s "
+            "GROUP BY belong_date ORDER BY belong_date",
+            (uid, start_date, end_date))
+
+    def today_abandoned(self, user_id=None, today=None):
+        """今日放弃次数"""
+        uid = user_id or self._default_user_id()
+        today = today or datetime.date.today()
+        row = self.db.query_one(
+            "SELECT COUNT(*) AS cnt FROM focus_record "
+            "WHERE user_id=%s AND is_completed=0 AND belong_date=%s",
+            (uid, today))
+        return int(row["cnt"]) if row else 0
+
+    def avg_daily_duration(self, user_id=None):
+        """日均专注时长（秒）"""
+        uid = user_id or self._default_user_id()
+        row = self.db.query_one(
+            "SELECT COUNT(DISTINCT belong_date) AS days, "
+            "COALESCE(SUM(actual_duration),0) AS total "
+            "FROM focus_record WHERE user_id=%s AND is_completed=1", (uid,))
+        if row is None or int(row["days"]) == 0:
+            return 0
+        days = int(row["days"])
+        return int(row["total"]) // days
 
 
 # ---------------- 目标 ----------------
@@ -295,6 +424,36 @@ class CheckinDAO(BaseDAO):
             "SELECT * FROM `checkin_record` WHERE user_id=%s ORDER BY checkin_time DESC LIMIT %s",
             (uid, limit),
         )
+
+
+# ---------------- 习惯打卡 ----------------
+class HabitCheckinDAO(BaseDAO):
+    def checkin(self, todo_id: int, checkin_date, checkin_time=None, actual_value=None,
+                user_id=None):
+        uid = user_id or self._default_user_id()
+        try:
+            return self.db.execute(
+                "INSERT INTO `habit_checkins`(todo_id, checkin_date, checkin_time, actual_value, "
+                "created_at) VALUES(%s,%s,%s,%s,%s)",
+                (todo_id, checkin_date, checkin_time, actual_value, datetime.datetime.now()))
+        except DB_INTEGRITY_ERRORS:
+            return 0
+
+    def get_today(self, todo_id: int, checkin_date=None, user_id=None):
+        uid = user_id or self._default_user_id()
+        checkin_date = checkin_date or datetime.date.today()
+        return self.db.query_one(
+            "SELECT * FROM habit_checkins WHERE todo_id=%s AND checkin_date=%s",
+            (todo_id, checkin_date))
+
+    def monthly_distribution(self, year_month: str, habit_type: int = 0):
+        """起床/睡眠打卡时间分布"""
+        return self.db.query_all(
+            "SELECT HOUR(checkin_time) AS hour, COUNT(*) AS cnt "
+            "FROM checkin_record WHERE checkin_type=%s "
+            "AND DATE_FORMAT(checkin_time,'%%Y-%%m')=%s "
+            "GROUP BY HOUR(checkin_time) ORDER BY hour",
+            (habit_type, year_month))
 
 
 # ---------------- 成就 ----------------
@@ -382,6 +541,21 @@ class LockScheduleDAO(BaseDAO):
 class WhiteNoiseDAO(BaseDAO):
     def list(self) -> List[dict]:
         return self.db.query_all("SELECT * FROM `white_noise` ORDER BY id")
+
+    def add(self, name: str, file_path: str, category: str, is_builtin: int = 0) -> int:
+        """添加白噪音条目，返回新记录ID。"""
+        return self.db.execute(
+            "INSERT INTO `white_noise`(name, file_path, category, is_builtin) "
+            "VALUES(%s,%s,%s,%s)",
+            (name, file_path, category, is_builtin),
+        )
+
+    def delete(self, noise_id: int) -> int:
+        """删除白噪音条目（仅允许删除非内置条目）。"""
+        return self.db.execute(
+            "DELETE FROM `white_noise` WHERE id=%s AND is_builtin=0",
+            (noise_id,),
+        )
 
 
 # ---------------- 设置 ----------------

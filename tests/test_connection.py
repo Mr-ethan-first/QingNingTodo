@@ -30,12 +30,21 @@ def test_connection_bad_host():
 
 
 def test_init_database_creates_tables(db):
-    tables = db.query_all("SHOW TABLES")
-    names = {list(row.values())[0] for row in tables}
+    """验证 init_database 创建了所有预期表。"""
+    # 兼容 MySQL (SHOW TABLES) 和 SQLite (sqlite_master)
+    # 注意：两个 Database 类都有 _conn 属性，必须用类名区分。
+    from src.database.sqlite_backend import SQLiteDatabase
+    if isinstance(db, SQLiteDatabase):
+        tables = db.query_all(
+            "SELECT name FROM sqlite_master WHERE type='table'")
+        names = {row["name"] for row in tables}
+    else:  # MySQL Database
+        tables = db.query_all("SHOW TABLES")
+        names = {list(row.values())[0] for row in tables}
     expected = {
         "user", "todo_group", "todo", "focus_record", "goal", "future_plan",
         "checkin_record", "achievement", "focus_whitelist", "lock_schedule",
-        "white_noise", "settings",
+        "white_noise", "settings", "interrupt_details", "habit_checkins",
     }
     assert expected.issubset(names)
 

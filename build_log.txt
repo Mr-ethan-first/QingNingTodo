@@ -1,6 +1,222 @@
-ִ��: C:\mySoftware\Anaconda3\Scripts\flet.EXE pack src\main.py -n=����ToDo -y --hidden-import=pymysql --onedir --distpath=D:\WorkSpace\cloudbuddy\qingNingTodo\dist_new --pyinstaller-build-args=--collect-submodules=src --pyinstaller-build-args=--exclude-module=PyQt5 --pyinstaller-build-args=--exclude-module=PyQt6 --pyinstaller-build-args=--exclude-module=PySide2 --pyinstaller-build-args=--exclude-module=PySide6 --pyinstaller-build-args=--exclude-module=qtpy --pyinstaller-build-args=--exclude-module=tkinter --pyinstaller-build-args=--exclude-module=matplotlib --pyinstaller-build-args=--noupx
-Updating Flet View version info C:\Users\ADMINI~1\AppData\Local\Temp\b718860e-6005-4ec4-bdfd-fb23912b2c46\flet\flet.exe
-Running PyInstaller: ['src\\main.py', '--noconfirm', '--noconsole', '--name', '����ToDo', '--distpath', 'D:\\WorkSpace\\cloudbuddy\\qingNingTodo\\dist_new', '--hidden-import', 'pymysql', '--onedir', '--collect-submodules=src', '--exclude-module=PyQt5', '--exclude-module=PyQt6', '--exclude-module=PySide2', '--exclude-module=PySide6', '--exclude-module=qtpy', '--exclude-module=tkinter', '--exclude-module=matplotlib', '--noupx', '--version-file', 'C:\\Users\\ADMINI~1\\AppData\\Local\\Temp\\92adb9e3-1461-46e9-9542-fbb86e079616']
-Deleting temp directory: C:\Users\ADMINI~1\AppData\Local\Temp\b718860e-6005-4ec4-bdfd-fb23912b2c46
+﻿python : 2431 INFO: PyInstaller: 6.21.0, contrib hooks: 2026.6
+At line:1 char:949
++ ... d d:\WorkSpace\cloudbuddy\qingNingTodo ; python build.py 2>&1 | Tee-O ...
++                                              ~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (2431 INFO: PyIn...b hooks: 2026.6:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+2432 INFO: Python: 3.10.11
+2591 INFO: Platform: Windows-10-10.0.26200-SP0
+2591 INFO: Python environment: C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python
+2630 INFO: wrote D:\WorkSpace\cloudbuddy\qingNingTodo\青柠待办.spec
+2939 INFO: Removing temporary files and cleaning cache in C:\Users\Administrator\AppData\Local\pyinstaller
+3689 INFO: Module search paths (PYTHONPATH):
+['D:\\WorkSpace\\cloudbuddy\\qingNingTodo',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python\\python310.zip',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python\\DLLs',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\win32',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\win32\\lib',
+ 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO '
+ 'CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\pythonwin',
+ 'D:\\WorkSpace\\cloudbuddy\\qingNingTodo']
+11109 INFO: Appending 'datas' from .spec
+11260 INFO: checking Analysis
+11261 INFO: Building Analysis because Analysis-00.toc is non existent
+11261 INFO: Looking for Python shared library...
+11261 INFO: Using Python shared library: C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\to
+ols\python\python310.dll
+11261 INFO: Running Analysis Analysis-00.toc
+11261 INFO: Target bytecode optimization level: 0
+11261 INFO: Initializing module dependency graph...
+11277 INFO: Initializing module graph hook caches...
+11533 INFO: Analyzing modules for base_library.zip ...
+17551 INFO: Processing standard module hook 'hook-heapq.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO
+ CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+17577 INFO: Processing standard module hook 'hook-encodings.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE 
+SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+20971 INFO: Processing standard module hook 'hook-math.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO 
+CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+21636 INFO: Processing standard module hook 'hook-pickle.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOL
+O CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+23320 INFO: Caching module dependency graph...
+23561 INFO: Analyzing D:\WorkSpace\cloudbuddy\qingNingTodo\src\main.py
+23652 INFO: Processing standard module hook 'hook-PyQt6.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO
+ CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+25355 INFO: Processing standard module hook 'hook-PyQt6.QtWidgets.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\
+\TRAE SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+29855 INFO: Processing standard module hook 'hook-PyQt6.QtCore.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TR
+AE SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+37715 INFO: Processing standard module hook 'hook-PyQt6.QtGui.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRA
+E SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+64712 INFO: Processing standard module hook 'hook-cryptography.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TR
+AE SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+78751 INFO: hook-cryptography: cryptography does not seem to be using dynamically linked OpenSSL.
+79421 INFO: Processing standard module hook 'hook-bcrypt.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOL
+O CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+79493 INFO: Processing standard module hook 'hook-nacl.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO 
+CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\_pyinstaller_hooks_contrib\\stdhooks'
+81018 INFO: Processing standard module hook 'hook-sqlite3.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SO
+LO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+84387 INFO: Processing standard module hook 'hook-_ctypes.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SO
+LO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+84457 INFO: Processing standard module hook 'hook-PyQt6.QtSvg.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRA
+E SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+85984 INFO: Processing standard module hook 'hook-platform.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE S
+OLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+86546 INFO: Processing module hooks (post-graph stage)...
+86612 INFO: Performing binary vs. data reclassification (156 entries)
+88020 INFO: Looking for ctypes DLLs
+88159 INFO: Analyzing run-time hooks ...
+88160 INFO: Including run-time hook 'pyi_rth_inspect.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO CN
+\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+88170 INFO: Including run-time hook 'pyi_rth_pyqt6.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO CN\\
+ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+88180 INFO: Processing pre-find-module-path hook 'hook-_pyi_rth_utils.py' from 'C:\\Users\\Administrator\\AppData\\Roam
+ing\\TRAE SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks\\pre_find_module_pa
+th'
+88209 INFO: Processing standard module hook 'hook-_pyi_rth_utils.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\
+TRAE SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks'
+88240 INFO: Including run-time hook 'pyi_rth_pkgutil.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO CN
+\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyInstaller\\hooks\\rthooks'
+88265 INFO: Including run-time hook 'pyi_rth_cryptography_openssl.py' from 'C:\\Users\\Administrator\\AppData\\Roaming\
+\TRAE SOLO CN\\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\_pyinstaller_hooks_contrib\\rthooks'
+88291 INFO: Creating base_library.zip...
+89955 INFO: Looking for dynamic libraries
+94838 INFO: Extra DLL search directories (AddDllDirectory): ['C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO CN\
+\ModularData\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyQt6\\Qt6\\bin']
+94838 INFO: Extra DLL search directories (PATH): ['C:\\Users\\Administrator\\AppData\\Roaming\\TRAE SOLO CN\\ModularDat
+a\\ai-agent\\vm\\tools\\python\\lib\\site-packages\\PyQt6\\Qt6\\bin']
+114564 INFO: Warnings written to D:\WorkSpace\cloudbuddy\qingNingTodo\build\青柠待办\warn-青柠待办.txt
+114709 INFO: Graph cross-reference written to D:\WorkSpace\cloudbuddy\qingNingTodo\build\青柠待办\xref-青柠待办.html
+114817 INFO: checking PYZ
+114818 INFO: Building PYZ because PYZ-00.toc is non existent
+114818 INFO: Building PYZ (ZlibArchive) D:\WorkSpace\cloudbuddy\qingNingTodo\build\青柠待办\PYZ-00.pyz
+114962 INFO: Building PYZ (ZlibArchive) D:\WorkSpace\cloudbuddy\qingNingTodo\build\青柠待办\PYZ-00.pyz completed successful
+ly.
+114987 INFO: checking PKG
+114988 INFO: Building PKG because PKG-00.toc is non existent
+114988 INFO: Building PKG (CArchive) 青柠待办.pkg
+143989 INFO: Building PKG (CArchive) 青柠待办.pkg completed successfully.
+144000 INFO: Bootloader C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\si
+te-packages\PyInstaller\bootloader\Windows-64bit-intel\runw.exe
+144000 INFO: checking EXE
+144000 INFO: Building EXE because EXE-00.toc is non existent
+144000 INFO: Building EXE from EXE-00.toc
+144104 INFO: Copying bootloader EXE to D:\WorkSpace\cloudbuddy\qingNingTodo\dist\青柠待办.exe
+144155 INFO: Copying icon to EXE
+144186 INFO: Copying 0 resources to EXE
+144187 INFO: Embedding manifest in EXE
+144285 INFO: Appending PKG archive to EXE
+144754 INFO: Fixing EXE headers
+146082 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #1 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.05 second(s)...
+146270 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #2 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.06 second(s)...
+146480 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #3 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.06 second(s)...
+146819 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #4 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.06 second(s)...
+147030 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #5 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.07 second(s)...
+147316 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #6 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.07 second(s)...
+147614 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #7 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.08 second(s)...
+147885 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #8 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.08 second(s)...
+148136 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #9 / 20: PermissionError(13, 'Permission denied
+'). Retrying in 0.09 second(s)...
+148385 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #10 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.10 second(s)...
+148628 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #11 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.11 second(s)...
+148889 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #12 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.12 second(s)...
+149169 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #13 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.14 second(s)...
+149500 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #14 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.17 second(s)...
+149824 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #15 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.20 second(s)...
+150166 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #16 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.25 second(s)...
+150596 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #17 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.33 second(s)...
+151085 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #18 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 0.50 second(s)...
+151734 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #19 / 20: PermissionError(13, 'Permission denie
+d'). Retrying in 1.00 second(s)...
+152918 WARNING: Execution of 'update_exe_pe_checksum' failed on attempt #20 / 20: PermissionError(13, 'Permission denie
+d').
+Traceback (most recent call last):
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\building\api.py", line 1058, in _retry_operation
+    return func(*args)
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\utils\win32\winutils.py", line 106, in update_exe_pe_checksum
+    with open(exe_path, 'wb') as fp:
+PermissionError: [Errno 13] Permission denied: 'D:\\WorkSpace\\cloudbuddy\\qingNingTodo\\dist\\青柠待办.exe'
 
-�����ɣ�D:\WorkSpace\cloudbuddy\qingNingTodo\dist\����ToDo\����ToDo.exe
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "runpy.py", line 196, in _run_module_as_main
+  File "runpy.py", line 86, in _run_code
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\__main__.py", line 321, in <module>
+    run()
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\__main__.py", line 215, in run
+    run_build(pyi_config, spec_file, **vars(args))
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\__main__.py", line 70, in run_build
+    PyInstaller.building.build_main.main(pyi_config, spec_file, **kwargs)
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\building\build_main.py", line 1275, in main
+    build(specfile, distpath, workpath, clean_build)
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\building\build_main.py", line 1213, in build
+    exec(code, spec_namespace)
+  File "D:\WorkSpace\cloudbuddy\qingNingTodo\青柠待办.spec", line 19, in <module>
+    exe = EXE(
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\building\api.py", line 675, in __init__
+    self.__postinit__()
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\building\datastruct.py", line 184, in __postinit__
+    self.assemble()
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\building\api.py", line 881, in assemble
+    self._retry_operation(winutils.update_exe_pe_checksum, build_name)
+  File "C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\lib\site-packages\PyIn
+staller\building\api.py", line 1077, in _retry_operation
+    raise RuntimeError(f"Execution of {func_name!r} failed - no more attempts left!") from e
+RuntimeError: Execution of 'update_exe_pe_checksum' failed - no more attempts left!
+  PATH 清理: 移除 5 个冲突目录
+    - C:\mySoftware\Anaconda3
+    - C:\mySoftware\Anaconda3\Library\mingw-w64\bin
+    - C:\mySoftware\Anaconda3\Library\usr\bin
+    - C:\mySoftware\Anaconda3\Library\bin
+    - C:\mySoftware\Anaconda3\Scripts
+
+============================================================
+  打包应用: 青柠待办
+  入口脚本: src\main.py
+  输出目录: dist/
+  排除模块: 29 个
+============================================================
+
+执行: C:\Users\Administrator\AppData\Roaming\TRAE SOLO CN\ModularData\ai-agent\vm\tools\python\python.exe -m PyInstaller src\main.py --name=青柠待办 --noconsole --onefile --distpath=dist --add-data=assets/sounds;assets/sounds --add-data=使用说明书.md;help --add-data=README.md;help --exclude-module=pytest --exclude-module=pytest_timeout --exclude-module=unittest --exclude-module=doctest --exclude-module=setuptools --exclude-module=pip --exclude-module=wheel --exclude-module=pkg_resources --exclude-module=pydoc_data --exclude-module=IPython --exclude-module=jupyter --exclude-module=nbconvert --exclude-module=nbformat --exclude-module=ipykernel --exclude-module=traitlets --exclude-module=numpy --exclude-module=scipy --exclude-module=pandas --exclude-module=matplotlib --exclude-module=PIL --exclude-module=Pillow --exclude-module=PyQt5 --exclude-module=PySide2 --exclude-module=PySide6 --exclude-module=qtpy --exclude-module=soundfile --exclude-module=sounddevice --exclude-module=imageio_ffmpeg --exclude-module=tkinter --noupx --noconfirm --clean
+
+
+打包失败，返回码: 1

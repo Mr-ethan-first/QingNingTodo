@@ -15,4 +15,14 @@ _build_out.txt
 _build_err.txt
 _pytest_out.txt
 _pytest_err.txt
+exe_stderr.txt
+exe_stderr2.txt
+exe_stdout.txt
+build_run.log
+
+# IDE / Agent 工具目录（非项目源码）
+.codebuddy/
+.trae/
+.workbuddy/
+.test_data/
 

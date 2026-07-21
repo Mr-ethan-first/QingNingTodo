@@ -1,0 +1,100 @@
+{
+  "自然音": [
+    {
+      "key": "rain",
+      "name": "雨声",
+      "files": [
+        "assets/sounds/自然音/rain_1.wav",
+        "assets/sounds/自然音/rain_2.wav",
+        "assets/sounds/自然音/rain_3.wav"
+      ]
+    },
+    {
+      "key": "ocean",
+      "name": "海浪",
+      "files": [
+        "assets/sounds/自然音/ocean_1.wav",
+        "assets/sounds/自然音/ocean_2.wav"
+      ]
+    },
+    {
+      "key": "forest",
+      "name": "森林鸟鸣",
+      "files": [
+        "assets/sounds/自然音/forest_1.wav",
+        "assets/sounds/自然音/forest_2.wav",
+        "assets/sounds/自然音/forest_3.wav"
+      ]
+    },
+    {
+      "key": "thunder",
+      "name": "雷雨",
+      "files": [
+        "assets/sounds/自然音/thunder_1.wav",
+        "assets/sounds/自然音/thunder_3.wav"
+      ]
+    },
+    {
+      "key": "wind",
+      "name": "风声",
+      "files": [
+        "assets/sounds/自然音/wind_1.wav",
+        "assets/sounds/自然音/wind_2.wav",
+        "assets/sounds/自然音/wind_3.wav"
+      ]
+    },
+    {
+      "key": "stream",
+      "name": "小河流水",
+      "files": [
+        "assets/sounds/自然音/stream_1.wav",
+        "assets/sounds/自然音/stream_2.wav",
+        "assets/sounds/自然音/stream_3.wav"
+      ]
+    }
+  ],
+  "氛围音": [
+    {
+      "key": "cafe",
+      "name": "咖啡厅",
+      "files": [
+        "assets/sounds/氛围音/cafe_1.wav",
+        "assets/sounds/氛围音/cafe_2.wav",
+        "assets/sounds/氛围音/cafe_3.wav"
+      ]
+    },
+    {
+      "key": "fire",
+      "name": "篝火",
+      "files": [
+        "assets/sounds/氛围音/fire_1.wav",
+        "assets/sounds/氛围音/fire_2.wav"
+      ]
+    },
+    {
+      "key": "night",
+      "name": "夜晚虫鸣",
+      "files": [
+        "assets/sounds/氛围音/night_1.wav",
+        "assets/sounds/氛围音/night_2.wav",
+        "assets/sounds/氛围音/night_3.wav"
+      ]
+    },
+    {
+      "key": "clock",
+      "name": "时钟嘀嗒",
+      "files": [
+        "assets/sounds/氛围音/clock_1.wav"
+      ]
+    },
+    {
+      "key": "whitenoise",
+      "name": "白噪音",
+      "files": [
+        "assets/sounds/氛围音/whitenoise_1.wav",
+        "assets/sounds/氛围音/whitenoise_2.wav",
+        "assets/sounds/氛围音/whitenoise_3.wav"
+      ]
+    }
+  ]
+}

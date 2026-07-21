@@ -1,0 +1,270 @@
+{
+  "自然音": [
+    {
+      "key": "rain",
+      "name": "雨声",
+      "urls": [
+        {
+          "filename": "Sound of rain.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/8/8a/Sound_of_rain.ogg",
+          "mime": "application/ogg",
+          "size": 431968
+        },
+        {
+          "filename": "Rain drops (Gravity Sound).wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/6/6b/Rain_drops_%28Gravity_Sound%29.wav",
+          "mime": "audio/wav",
+          "size": 20784862
+        },
+        {
+          "filename": "Rain delay (Gravity Sound).wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/2/2b/Rain_delay_%28Gravity_Sound%29.wav",
+          "mime": "audio/wav",
+          "size": 64175412
+        }
+      ]
+    },
+    {
+      "key": "ocean",
+      "name": "海浪",
+      "urls": [
+        {
+          "filename": "Life on the Ocean Wave.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/0a/Life_on_the_Ocean_Wave.wav",
+          "mime": "audio/wav",
+          "size": 11125560
+        },
+        {
+          "filename": "En-us-surf.oga",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/f/f0/En-us-surf.oga",
+          "mime": "application/ogg",
+          "size": 30674
+        },
+        {
+          "filename": "Oceanwavescrushing.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Oceanwavescrushing.ogg",
+          "mime": "application/ogg",
+          "size": 2849514
+        }
+      ]
+    },
+    {
+      "key": "forest",
+      "name": "森林鸟鸣",
+      "urls": [
+        {
+          "filename": "Birds Perungalathur Reserved Forest.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Birds_Perungalathur_Reserved_Forest.wav",
+          "mime": "audio/wav",
+          "size": 23909516
+        },
+        {
+          "filename": "Birds forest.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/3/38/Birds_forest.ogg",
+          "mime": "application/ogg",
+          "size": 187686
+        },
+        {
+          "filename": "Bird squeak Taiwan.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Bird_squeak_Taiwan.ogg",
+          "mime": "application/ogg",
+          "size": 176289
+        }
+      ]
+    },
+    {
+      "key": "thunder",
+      "name": "雷雨",
+      "urls": [
+        {
+          "filename": "Thunder 01.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/f/fa/Thunder_01.ogg",
+          "mime": "application/ogg",
+          "size": 411421
+        },
+        {
+          "filename": "Thunder.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/1/1b/Thunder.wav",
+          "mime": "audio/wav",
+          "size": 6190364
+        },
+        {
+          "filename": "Nosferatu thunderclap - Richard Humphries.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/a/ac/Nosferatu_thunderclap_-_Richard_Humphries.wav",
+          "mime": "audio/wav",
+          "size": 4814152
+        }
+      ]
+    },
+    {
+      "key": "wind",
+      "name": "风声",
+      "urls": [
+        {
+          "filename": "Wind rustling (Gravity Sound).mp3",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/c/cc/Wind_rustling_%28Gravity_Sound%29.mp3",
+          "mime": "audio/mpeg",
+          "size": 34923
+        },
+        {
+          "filename": "Wind in forest (Gravity Sound).wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/47/Wind_in_forest_%28Gravity_Sound%29.wav",
+          "mime": "audio/wav",
+          "size": 13778554
+        },
+        {
+          "filename": "Leaves in the wind (Gravity Sound).wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/05/Leaves_in_the_wind_%28Gravity_Sound%29.wav",
+          "mime": "audio/wav",
+          "size": 35343812
+        }
+      ]
+    },
+    {
+      "key": "stream",
+      "name": "小河流水",
+      "urls": [
+        {
+          "filename": "433589 jackthemurray stream-river-water-up-close.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/5/54/433589_jackthemurray_stream-river-water-up-close.wav",
+          "mime": "audio/wav",
+          "size": 19841038
+        },
+        {
+          "filename": "363120 fractalstudios water-trickle.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/363120_fractalstudios_water-trickle.wav",
+          "mime": "audio/wav",
+          "size": 5833216
+        },
+        {
+          "filename": "Hemlock stream.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/3/32/Hemlock_stream.ogg",
+          "mime": "application/ogg",
+          "size": 76356
+        }
+      ]
+    }
+  ],
+  "氛围音": [
+    {
+      "key": "cafe",
+      "name": "咖啡厅",
+      "urls": [
+        {
+          "filename": "LL-Q150 (fra)-Lepticed7-coffee shop.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/d/d1/LL-Q150_%28fra%29-Lepticed7-coffee_shop.wav",
+          "mime": "audio/wav",
+          "size": 101164
+        },
+        {
+          "filename": "Can you suggest a good coffee shop.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/d/df/Can_you_suggest_a_good_coffee_shop.wav",
+          "mime": "audio/wav",
+          "size": 167118
+        },
+        {
+          "filename": "LL-Q150 (fra)-Benoît Prieur-coffee shop.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/95/LL-Q150_%28fra%29-Beno%C3%AEt_Prieur-coffee_shop.wav",
+          "mime": "audio/wav",
+          "size": 107796
+        }
+      ]
+    },
+    {
+      "key": "fire",
+      "name": "篝火",
+      "urls": [
+        {
+          "filename": "Campfire sound ambience.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/b/b1/Campfire_sound_ambience.ogg",
+          "mime": "application/ogg",
+          "size": 554608
+        },
+        {
+          "filename": "Nl-Kampvuur-article.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/9d/Nl-Kampvuur-article.ogg",
+          "mime": "application/ogg",
+          "size": 240264
+        },
+        {
+          "filename": "Keep the Home Fires Burning - Frederick Wheeler.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/0/01/Keep_the_Home_Fires_Burning_-_Frederick_Wheeler.ogg",
+          "mime": "application/ogg",
+          "size": 1776557
+        }
+      ]
+    },
+    {
+      "key": "night",
+      "name": "夜晚虫鸣",
+      "urls": [
+        {
+          "filename": "Crickets choir.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Crickets_choir.ogg",
+          "mime": "application/ogg",
+          "size": 48552955
+        },
+        {
+          "filename": "Sound of dogs, birds and crickets in early morning.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/7/7e/Sound_of_dogs%2C_birds_and_crickets_in_early_morning.wav",
+          "mime": "audio/wav",
+          "size": 37086136
+        },
+        {
+          "filename": "Audio HörBild von Schritten nachts um 3 im Wald und Grillenzirpen.wav",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/2/29/Audio_H%C3%B6rBild_von_Schritten_nachts_um_3_im_Wald_und_Grillenzirpen.wav",
+          "mime": "audio/wav",
+          "size": 7351182
+        }
+      ]
+    },
+    {
+      "key": "clock",
+      "name": "时钟嘀嗒",
+      "urls": [
+        {
+          "filename": "Clock ticking.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/5/56/Clock_ticking.ogg",
+          "mime": "application/ogg",
+          "size": 504069
+        },
+        {
+          "filename": "Alarm clock ticking.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/8/8b/Alarm_clock_ticking.ogg",
+          "mime": "application/ogg",
+          "size": 273711
+        },
+        {
+          "filename": "Grandfather Clock Ticking.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Grandfather_Clock_Ticking.ogg",
+          "mime": "application/ogg",
+          "size": 304462
+        }
+      ]
+    },
+    {
+      "key": "whitenoise",
+      "name": "白噪音",
+      "urls": [
+        {
+          "filename": "White-noise-sound-20sec-mono-44100Hz.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/9/98/White-noise-sound-20sec-mono-44100Hz.ogg",
+          "mime": "application/ogg",
+          "size": 225581
+        },
+        {
+          "filename": "White noise.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/a/aa/White_noise.ogg",
+          "mime": "application/ogg",
+          "size": 201371
+        },
+        {
+          "filename": "Gaussian white noise.ogg",
+          "url": "https://upload.wikimedia.org/wikipedia/commons/c/ca/Gaussian_white_noise.ogg",
+          "mime": "application/ogg",
+          "size": 89262
+        }
+      ]
+    }
+  ]
+}
