@@ -108,6 +108,8 @@ def main():
         "--noconsole",
         "--onefile",
         f"--distpath={DIST_DIR}",
+        # 应用图标（品牌绿色系「清单」图标，多尺寸 ico）
+        "--icon=assets/icons/qingning.ico",
         # 数据文件：音频资源
         "--add-data=assets/sounds;assets/sounds",
         # 数据文件：帮助文档（落入 help/ 目录）
