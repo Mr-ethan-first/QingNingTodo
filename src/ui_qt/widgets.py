@@ -12,11 +12,14 @@ v2 升级：
 - 分区标题：圆角图标块 + 渐变底
 """
 from PyQt6.QtCore import Qt, QSize, QObject, QPropertyAnimation, QEasingCurve, pyqtProperty, pyqtSignal, QEvent, QDate, QRectF
-from PyQt6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QIcon, QPainterPath
+from PyQt6.QtGui import QColor, QFont, QPainter, QPalette, QPen, QPixmap, QIcon, QPainterPath
 from PyQt6.QtWidgets import (
-    QCalendarWidget, QComboBox, QDateEdit, QFrame, QGraphicsDropShadowEffect,
-    QHBoxLayout, QLabel, QLineEdit, QPushButton, QSlider, QVBoxLayout, QWidget,
+    QApplication, QCalendarWidget, QComboBox, QDateEdit, QFrame,
+    QGraphicsDropShadowEffect, QHBoxLayout, QLabel, QLineEdit, QListView,
+    QListWidget, QListWidgetItem, QPushButton, QSlider, QStyle, QVBoxLayout,
+    QWidget,
 )
+from PyQt6 import sip
 
 from src.theme import get_current_theme, hex_rgba
 from src.tokens import shadow as shadow_tok, motion
@@ -315,10 +318,261 @@ def line_edit(label: str = None, value: str = "", placeholder: str = "",
     return le
 
 
+class _DropdownPanel(QFrame):
+    """自建下拉弹出面板：完全替代 QComboBoxPrivateContainer。
+
+    使用 Qt.WindowType.Popup 窗口类型，自带外部点击自动关闭。
+    内含 QListWidget 渲染选项，通过 QSS 直接控制全部视觉，
+    从根源上消除白框闪烁（不再依赖 Qt 内部容器的 Palette 修补）。
+    """
+
+    item_selected = pyqtSignal(int)
+
+    def __init__(self, combo: QComboBox) -> None:
+        super().__init__(
+            combo,
+            Qt.WindowType.Popup | Qt.WindowType.FramelessWindowHint
+            | Qt.WindowType.NoDropShadowWindowHint,
+        )
+        self._combo = combo
+        self._explicit_confirm: bool = False
+
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(0, 0, 0, 0)
+        lay.setSpacing(0)
+
+        self._list = QListWidget(self)
+        self._list.setSelectionMode(
+            QListWidget.SelectionMode.SingleSelection)
+        self._list.setVerticalScrollMode(
+            QListWidget.ScrollMode.ScrollPerPixel)
+        self._list.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._list.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self._list.itemClicked.connect(self._on_item_clicked)
+        lay.addWidget(self._list)
+
+        self._apply_theme()
+        self._populate()
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+
+    # -- 样式 -------------------------------------------------
+    def _apply_theme(self) -> None:
+        t = get_current_theme()
+        item_h = max(28, getattr(t, 'combo_item_height', 28))
+        self.setStyleSheet(
+            f"_DropdownPanel {{"
+            f"  background: {t.surface};"
+            f"  border: 1px solid {t.border};"
+            f"  border-radius: {t.radius_sm}px;"
+            f"}}"
+            f"QListWidget {{"
+            f"  background: {t.surface};"
+            f"  color: {t.text};"
+            f"  border: none;"
+            f"  outline: none;"
+            f"  padding: 2px;"
+            f"}}"
+            f"QListWidget::item {{"
+            f"  padding: 6px 10px;"
+            f"  border-radius: {t.radius_sm}px;"
+            f"  min-height: {item_h}px;"
+            f"}}"
+            f"QListWidget::item:selected {{"
+            f"  background: {t.primary_soft};"
+            f"  color: {t.primary};"
+            f"}}"
+            f"QListWidget::item:hover {{"
+            f"  background: {hex_rgba(t.primary, 0.12)};"
+            f"}}"
+        )
+
+    # -- 数据同步 ---------------------------------------------
+    def _populate(self) -> None:
+        self._list.clear()
+        for i in range(self._combo.count()):
+            item = QListWidgetItem(self._combo.itemText(i))
+            ic = self._combo.itemIcon(i)
+            if not ic.isNull():
+                item.setIcon(ic)
+            self._list.addItem(item)
+        idx = self._combo.currentIndex()
+        if 0 <= idx < self._list.count():
+            self._list.setCurrentRow(idx)
+
+    def update_items(self) -> None:
+        """外部调用：刷新选项列表并重新应用主题。"""
+        self._apply_theme()
+        self._populate()
+
+    # -- 定位 -------------------------------------------------
+    def position_and_show(self) -> None:
+        """计算弹出位置（优先下方，空间不足则上方）并显示。"""
+        combo = self._combo
+        pw = combo.width()
+        item_h = self._list.sizeHintForRow(0)
+        if item_h < 0:
+            item_h = 32
+        vis = min(self._list.count(), 8)
+        ph = vis * item_h + 8
+
+        screen = QApplication.screenAt(
+            combo.mapToGlobal(combo.rect().center()))
+        if screen is None:
+            screen = QApplication.primaryScreen()
+        sg = screen.availableGeometry()
+
+        below = combo.mapToGlobal(combo.rect().bottomLeft())
+        above = combo.mapToGlobal(combo.rect().topLeft())
+        space_below = sg.bottom() - below.y()
+        space_above = above.y() - sg.top()
+
+        if space_below >= ph or space_below >= space_above:
+            pos = below
+        else:
+            pos = above
+            pos.setY(pos.y() - ph)
+        pos.setX(max(sg.left(), min(pos.x(), sg.right() - pw)))
+
+        self.setGeometry(pos.x(), pos.y(), pw, ph)
+        self.show()
+        self._list.setFocus(Qt.FocusReason.PopupFocusReason)
+        idx = self._combo.currentIndex()
+        if 0 <= idx < self._list.count():
+            self._list.scrollToItem(
+                self._list.item(idx),
+                QListWidget.ScrollHint.PositionAtCenter,
+            )
+
+    # -- 关闭 / 确认 ------------------------------------------
+    def closeEvent(self, event) -> None:
+        if self._explicit_confirm:
+            row = self._list.currentRow()
+            if row >= 0:
+                self.item_selected.emit(row)
+        self._explicit_confirm = False
+        super().closeEvent(event)
+
+    def keyPressEvent(self, event) -> None:
+        key = event.key()
+        if key == Qt.Key.Key_Escape:
+            self._explicit_confirm = False
+            self.close()
+            return
+        if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+            self._explicit_confirm = True
+            self.close()
+            return
+        super().keyPressEvent(event)
+
+    def mousePressEvent(self, event) -> None:
+        local = self.mapFromGlobal(event.globalPosition().toPoint())
+        if self.rect().contains(local):
+            super().mousePressEvent(event)
+        else:
+            self._explicit_confirm = False
+            self.close()
+
+    def _on_item_clicked(self, _item: QListWidgetItem) -> None:
+        self._explicit_confirm = True
+        self.close()
+
+
+class SmoothComboBox(QComboBox):
+    """自定义下拉框：完全自建弹出面板，消除白框闪烁。
+
+    彻底绕过 Qt 内部的 QComboBoxPrivateContainer（其默认白底 Palette
+    是导致闪烁的根因），改用 _DropdownPanel 自建弹出窗口。
+    面板使用 QSS 直接控制全部视觉，亮色 / 暗色主题自动跟随。
+
+    无动画、无弹性——展开即到位，静态平滑。
+    """
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self._panel: _DropdownPanel | None = None
+        self._panel_visible: bool = False
+
+    # -- 弹出 / 收起 ------------------------------------------
+    def showPopup(self) -> None:
+        """显示自建弹出面板（不调用 super，完全绕过 Qt 内置 popup）。"""
+        if self.count() == 0:
+            return
+        if self._panel is None:
+            self._panel = _DropdownPanel(self)
+            self._panel.item_selected.connect(self._on_panel_selected)
+        self._panel.update_items()
+        self._panel.position_and_show()
+        self._panel_visible = True
+        app = QApplication.instance()
+        if app is not None:
+            app.installEventFilter(self)
+
+    def hidePopup(self) -> None:
+        """隐藏弹出面板并清理事件过滤器。"""
+        if self._panel is not None and self._panel.isVisible():
+            self._panel.hide()
+        self._panel_visible = False
+        app = QApplication.instance()
+        if app is not None and not sip.isdeleted(self):
+            app.removeEventFilter(self)
+
+    # -- 事件过滤器：兜底处理外部点击与快捷键 -----------------
+    def eventFilter(self, obj: QObject, event: QEvent) -> bool:
+        if not self._panel_visible:
+            return False
+        et = event.type()
+
+        # 外部鼠标点击 -> 关闭面板
+        if et == QEvent.Type.MouseButtonPress and self._panel is not None:
+            if isinstance(obj, QWidget) and not self._panel.isAncestorOf(obj):
+                self.hidePopup()
+                return False
+
+        # 键盘：Escape 关闭，Enter/Return 确认
+        if et == QEvent.Type.KeyPress:
+            key = event.key()
+            if key == Qt.Key.Key_Escape:
+                self.hidePopup()
+                return True
+            if key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
+                if self._panel is not None:
+                    row = self._panel._list.currentRow()
+                    if row >= 0:
+                        self.setCurrentIndex(row)
+                self.hidePopup()
+                return True
+
+        return False
+
+    # -- 回调 -------------------------------------------------
+    def _on_panel_selected(self, index: int) -> None:
+        """面板确认选择后更新 combobox 索引。"""
+        if 0 <= index < self.count():
+            self.setCurrentIndex(index)
+        self.hidePopup()
+
+    # -- 覆盖尺寸提示 -----------------------------------------
+    def sizeHint(self) -> QSize:
+        hint = super().sizeHint()
+        if self._panel is not None and self._panel.isVisible():
+            hint.setWidth(max(hint.width(), self._panel.width()))
+        return hint
+
+    # -- 焦点管理：失焦时关闭面板 -----------------------------
+    def focusOutEvent(self, event) -> None:
+        if self._panel_visible and self._panel is not None:
+            focus = QApplication.focusWidget()
+            if focus is None or not self._panel.isAncestorOf(focus):
+                self.hidePopup()
+        super().focusOutEvent(event)
+
+
+
 def combo_box(items, value=None, on_change=None, parent: QWidget = None,
               min_w: int = None) -> QComboBox:
     """items: [(data, text), ...]。"""
-    cb = QComboBox(parent)
+    cb = SmoothComboBox(parent)
     for data, text in items:
         cb.addItem(text, data)
     if value is not None:

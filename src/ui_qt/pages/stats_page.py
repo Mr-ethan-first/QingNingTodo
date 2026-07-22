@@ -15,7 +15,7 @@ import datetime
 
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtWidgets import (
-    QCheckBox, QComboBox, QDialog, QFrame, QHBoxLayout, QLabel,
+    QCheckBox, QDialog, QFrame, QHBoxLayout, QLabel,
     QPushButton, QScrollArea, QVBoxLayout, QWidget,
 )
 
@@ -26,7 +26,7 @@ from src.ui_qt.charts import (
 from src.ui_qt.icons import icon
 from src.ui_qt.pages import PageBase
 from src.ui_qt.widgets import (
-    CalendarDateEdit, card, hero_banner, section_title, ghost_button,
+    CalendarDateEdit, SmoothComboBox, card, hero_banner, section_title, ghost_button,
 )
 
 
@@ -901,7 +901,7 @@ class StatsPage(PageBase):
         lbl_line.setFixedWidth(label_w)
         lbl_line.setStyleSheet(f"color:{self._t.text}; font-size:14px;")
         row_line.addWidget(lbl_line)
-        combo_line = QComboBox()
+        combo_line = SmoothComboBox()
         combo_line.addItem("曲线", "curve")
         combo_line.addItem("直线", "line")
         combo_line.setCurrentIndex(0 if self._trend_smooth else 1)
@@ -916,7 +916,7 @@ class StatsPage(PageBase):
         lbl_unit.setFixedWidth(label_w)
         lbl_unit.setStyleSheet(f"color:{self._t.text}; font-size:14px;")
         row_unit.addWidget(lbl_unit)
-        combo_unit = QComboBox()
+        combo_unit = SmoothComboBox()
         combo_unit.addItem("分钟", "minute")
         combo_unit.addItem("小时", "hour")
         combo_unit.setCurrentIndex(0 if self._chart_unit == "minute" else 1)
@@ -931,7 +931,7 @@ class StatsPage(PageBase):
         lbl_range.setFixedWidth(label_w)
         lbl_range.setStyleSheet(f"color:{self._t.text}; font-size:14px;")
         row_range.addWidget(lbl_range)
-        combo_range = QComboBox()
+        combo_range = SmoothComboBox()
         combo_range.addItem("7天", "7days")
         combo_range.addItem("整月", "month")
         combo_range.setCurrentIndex(0 if self._monthly_range == "7days" else 1)

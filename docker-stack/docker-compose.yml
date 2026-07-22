@@ -41,8 +41,8 @@ services:
     image: rabbitmq:4.1-management
     container_name: local-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5704:5672"
+      - "5707:15672"
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
