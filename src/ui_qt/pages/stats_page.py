@@ -105,7 +105,7 @@ class StatsPage(PageBase):
         self._gear_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._gear_btn.setObjectName("iconBtn")
         self._gear_btn.clicked.connect(self._open_settings)
-        hero_row.addWidget(self._gear_btn, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+        hero_row.addWidget(self._gear_btn, 0, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
         self._lay.addLayout(hero_row)
 
         # ---------- 概览卡片 ----------
@@ -772,7 +772,6 @@ class StatsPage(PageBase):
             QDialog {{
                 background: {self._t.surface};
                 color: {self._t.text};
-                border-radius: {self._t.radius_lg}px;
             }}
         """)
         lay = QVBoxLayout(dlg)
@@ -809,49 +808,54 @@ class StatsPage(PageBase):
         cb_bubble.setStyleSheet(f"color:{self._t.text_subtle}; font-size:14px;")
         lay.addWidget(cb_bubble)
 
+        # 趋势图线条、统计图单位、月度数据展示范围三行下拉框
+        # 统一标签宽度，下拉框向右延伸与 checkbox 行右边界对齐
+        label_w = 130
+        combo_w = 200  # 352(内容区) - 130(标签) - 12(spacing) - 10(余量)
+
         # 趋势图线条
         row_line = QHBoxLayout()
         row_line.setSpacing(12)
         lbl_line = QLabel("趋势图线条：")
+        lbl_line.setFixedWidth(label_w)
         lbl_line.setStyleSheet(f"color:{self._t.text}; font-size:14px;")
         row_line.addWidget(lbl_line)
         combo_line = QComboBox()
         combo_line.addItem("曲线", "curve")
         combo_line.addItem("直线", "line")
         combo_line.setCurrentIndex(0 if self._trend_smooth else 1)
-        combo_line.setFixedWidth(120)
+        combo_line.setFixedWidth(combo_w)
         row_line.addWidget(combo_line)
-        row_line.addStretch(1)
         lay.addLayout(row_line)
 
         # 统计图单位
         row_unit = QHBoxLayout()
         row_unit.setSpacing(12)
         lbl_unit = QLabel("统计图单位：")
+        lbl_unit.setFixedWidth(label_w)
         lbl_unit.setStyleSheet(f"color:{self._t.text}; font-size:14px;")
         row_unit.addWidget(lbl_unit)
         combo_unit = QComboBox()
         combo_unit.addItem("分钟", "minute")
         combo_unit.addItem("小时", "hour")
         combo_unit.setCurrentIndex(0 if self._chart_unit == "minute" else 1)
-        combo_unit.setFixedWidth(120)
+        combo_unit.setFixedWidth(combo_w)
         row_unit.addWidget(combo_unit)
-        row_unit.addStretch(1)
         lay.addLayout(row_unit)
 
         # 月度数据展示范围
         row_range = QHBoxLayout()
         row_range.setSpacing(12)
         lbl_range = QLabel("月度数据展示范围：")
+        lbl_range.setFixedWidth(label_w)
         lbl_range.setStyleSheet(f"color:{self._t.text}; font-size:14px;")
         row_range.addWidget(lbl_range)
         combo_range = QComboBox()
         combo_range.addItem("7天", "7days")
         combo_range.addItem("整月", "month")
         combo_range.setCurrentIndex(0 if self._monthly_range == "7days" else 1)
-        combo_range.setFixedWidth(120)
+        combo_range.setFixedWidth(combo_w)
         row_range.addWidget(combo_range)
-        row_range.addStretch(1)
         lay.addLayout(row_range)
 
         lay.addStretch(1)

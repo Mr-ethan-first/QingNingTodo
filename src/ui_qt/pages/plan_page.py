@@ -1,6 +1,7 @@
 """未来计划表页面（PyQt6）。"""
 import datetime
 
+from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QMenu, QMessageBox, QToolButton, QVBoxLayout
 
 from src.ui_qt.dialogs import PlanDialog
@@ -21,8 +22,9 @@ class PlanPage(PageBase):
         header = QHBoxLayout()
         header.addWidget(section_title("未来计划表", "map"))
         header.addStretch(1)
-        header.addWidget(primary_button("新建计划", icon_name="plus",
-                                         on_click=self._add_plan))
+        header.addWidget(primary_button("新建计划",
+                                         on_click=self._add_plan, min_w=100),
+                          0, Qt.AlignmentFlag.AlignVCenter)
         self._lay.addLayout(header)
         self._lay.addWidget(hero_banner("奔赴山海之约", "重要之事，铭刻于心"))
 
@@ -85,11 +87,13 @@ class PlanPage(PageBase):
         btn = QToolButton()
         btn.setIcon(icon("more", t.text_muted, 20))
         btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        btn.setFixedSize(32, 32)  # 紧凑尺寸
         # 隐藏QToolButton自带的下拉箭头，避免与三点图标重叠（与待办清单列表样式一致）
         btn.setStyleSheet(
             f"QToolButton{{border:none; border-radius:6px; background:transparent;}}"
             f"QToolButton:hover{{background:{t.surface};}}"
             f"QToolButton::menu-indicator{{image:none; width:0px;}}")
+        btn.setArrowType(Qt.ArrowType.NoArrow)
         menu = QMenu(btn)
         menu.setStyleSheet(
             f"QMenu{{background:{t.surface}; border:1px solid {t.border}; "

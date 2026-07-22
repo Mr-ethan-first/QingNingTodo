@@ -592,6 +592,38 @@ def _grad(direction: tuple, stops: list) -> str:
     return "".join(parts)
 
 
+# 下拉框向下箭头颜色（跟随主题切换）
+_CHEVRON_COLOR = {
+    "light": "#6B7A5A",
+    "dark": "#8B95C7",
+}
+
+
+def _ensure_chevron_icon(theme: Theme) -> str:
+    """生成主题色向下三角 SVG 文件，返回 QSS url() 本地路径。
+
+    使用本地文件方式，确保 PyQt6 QSS ::down-arrow 能正确渲染图片。
+    """
+    color = _CHEVRON_COLOR.get(theme.name, _CHEVRON_COLOR["light"])
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" '
+        'viewBox="0 0 12 12">'
+        f'<path fill="{color}" d="M2 4l4 4 4-4z"/></svg>'
+    )
+    icon_dir = os.path.join(
+        os.environ.get("QINGNING_TODO_HOME",
+                        os.path.join(os.path.expanduser("~"), ".qingning_todo")),
+        "_icons")
+    os.makedirs(icon_dir, exist_ok=True)
+    icon_path = os.path.join(icon_dir, f"chevron_{theme.name}.svg")
+    try:
+        with open(icon_path, "w", encoding="utf-8") as f:
+            f.write(svg)
+    except OSError:
+        pass
+    return icon_path.replace("\\", "/")
+
+
 def build_qss(t: Theme) -> str:
     """1:1 还原两个 HTML 原型的视觉。
 
@@ -601,6 +633,7 @@ def build_qss(t: Theme) -> str:
     """
     is_dark = t.name == "dark"
     cal_icon_path = _ensure_calendar_icon(t)
+    chevron_path = _ensure_chevron_icon(t)
 
     # ── 渐变令牌 ──
     # 主按钮渐变：与 .btn-primary 一致（实际纯色即可，原型 .btn 已是单色）
@@ -755,12 +788,11 @@ def build_qss(t: Theme) -> str:
     QPushButton#primary {{
         background: {t.primary};
         color: {t.on_primary};
-        border: none;
+        border: 1px solid {t.primary};
         border-radius: {t.radius_sm}px;
-        padding: 6px 16px;
+        padding: 0 16px;
         font-weight: 500;
         font-size: 12px;
-        min-height: 28px;
     }}
     QPushButton#primary:hover {{
         opacity: 0.9;
@@ -780,7 +812,7 @@ def build_qss(t: Theme) -> str:
         color: {t.primary};
         border: 1px solid {t.primary};
         border-radius: {t.radius_sm}px;
-        padding: 6px 15px;
+        padding: 0 16px;
         font-weight: 500;
         font-size: 12px;
     }}
@@ -858,10 +890,10 @@ def build_qss(t: Theme) -> str:
         color: {t.text};
         border: 1px solid {t.border};
         border-radius: {t.radius_sm}px;
-        padding: 7px 10px;
+        padding: 0 10px;
         font-size: 12px;
         font-family: {t.font_b};
-        min-height: 30px;
+        min-height: 28px;
     }}
     QLineEdit:hover {{
         border: 1px solid {t.primary};
@@ -880,35 +912,37 @@ def build_qss(t: Theme) -> str:
         color: {t.text};
         border: 1px solid {t.border};
         border-radius: {t.radius_sm}px;
-        padding: 0 10px;
+        padding: 0 28px 0 10px;
         font-size: 12px;
-        min-height: 24px;
+        min-height: 28px;
     }}
     QComboBox:hover {{ border: 1px solid {t.primary}; }}
     QComboBox:focus {{ border: 1px solid {t.primary}; }}
     QComboBox::drop-down {{
         border: none;
-        width: 22px;
+        background: transparent;
+        width: 20px;
+        subcontrol-origin: border;
+        subcontrol-position: center right;
     }}
     QComboBox::down-arrow {{
-        width: 8px; height: 8px;
-        border-left: 2px solid {t.text_muted};
-        border-bottom: 2px solid {t.text_muted};
-        transform: rotate(-45deg);
+        image: url({chevron_path});
+        width: 12px; height: 12px;
+        margin-right: 8px;
     }}
     QComboBox QAbstractItemView {{
         background: {t.surface};
         color: {t.text};
         border: 1px solid {t.border};
-        border-radius: {t.radius_md}px;
+        border-radius: 0px;
         selection-background-color: {t.primary_soft};
         selection-color: {t.primary};
-        padding: 4px;
+        padding: 0px;
         outline: none;
     }}
     QComboBox QAbstractItemView::item {{
         padding: 6px 10px;
-        border-radius: {t.radius_sm}px;
+        border-radius: 0px;
     }}
     QComboBox QAbstractItemView::item:hover {{
         background: {nav_hover};

@@ -11,8 +11,8 @@ v2 升级：
 - 徽章：渐变底色
 - 分区标题：圆角图标块 + 渐变底
 """
-from PyQt6.QtCore import Qt, QSize, QObject, QPropertyAnimation, QEasingCurve, pyqtProperty, pyqtSignal, QEvent, QDate
-from PyQt6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QIcon
+from PyQt6.QtCore import Qt, QSize, QObject, QPropertyAnimation, QEasingCurve, pyqtProperty, pyqtSignal, QEvent, QDate, QRectF
+from PyQt6.QtGui import QColor, QFont, QPainter, QPen, QPixmap, QIcon, QPainterPath
 from PyQt6.QtWidgets import (
     QCalendarWidget, QComboBox, QDateEdit, QFrame, QGraphicsDropShadowEffect,
     QHBoxLayout, QLabel, QLineEdit, QPushButton, QSlider, QVBoxLayout, QWidget,
@@ -133,6 +133,45 @@ def card(parent: QWidget = None, shadow: bool = True) -> QFrame:
     return f
 
 
+class RoundedCard(QFrame):
+    """圆角卡片：完全接管 paintEvent 绘制圆角背景和边框。
+
+    不使用 QSS 的 background/border（通过不设置 objectName 避免），
+    完全由 paintEvent 绘制，确保圆角外区域显示父窗口背景色而非直角阴影。
+    """
+
+    def __init__(self, radius: int = 24, parent: QWidget = None):
+        super().__init__(parent)
+        self._radius = radius
+        # 关键：禁止 QFrame 自动填充背景，避免 Qt 在 paintEvent 之前
+        # 绘制直角背景导致四角阴影
+        self.setAutoFillBackground(False)
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
+
+    def setRadius(self, radius: int):
+        self._radius = radius
+        self.update()
+
+    def paintEvent(self, ev):
+        t = get_current_theme()
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # 先用父窗口背景色填充整个矩形，覆盖 Qt 可能绘制的直角背景
+        p.fillRect(self.rect(), QColor(t.bg))
+        # 然后只在圆角路径内绘制卡片背景色
+        path = QPainterPath()
+        path.addRoundedRect(QRectF(self.rect()), self._radius, self._radius)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.setBrush(QColor(t.surface))
+        p.drawPath(path)
+        # 绘制边框
+        pen = QPen(QColor(t.border), 1)
+        p.setPen(pen)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.drawRoundedRect(QRectF(0.5, 0.5, self.width() - 1, self.height() - 1),
+                          self._radius, self._radius)
+
+
 def glass_card(parent: QWidget = None, alpha: float = 0.92, blur: int = 32,
                offset_y: int = 8, alpha_shadow: int = 36) -> QFrame:
     """玻璃拟态卡片：半透明表面 + 高光描边 + 柔光投影。
@@ -174,10 +213,7 @@ def fade_in(widget: QWidget, duration: int = motion.base) -> None:
 
 def primary_button(text: str, on_click=None, parent: QWidget = None,
                    icon_name: str = None, min_w: int = None) -> QPushButton:
-    """主按钮：渐变底 + 彩色发光投影（v2 升级）。
-
-    发光投影使用主色作为阴影颜色，营造按钮「自发光」的高级感。
-    """
+    """主按钮：渐变底（与 ghost_button 宽高布局完全一致，仅颜色不同）。"""
     b = QPushButton(text, parent)
     b.setObjectName("primary")
     b.setFixedHeight(36)
@@ -185,9 +221,6 @@ def primary_button(text: str, on_click=None, parent: QWidget = None,
         t_ = get_current_theme()
         b.setIcon(icon(icon_name, t_.on_primary))
         b.setIconSize(QSize(18, 18))
-    # v2: 彩色发光投影
-    t_ = get_current_theme()
-    _soft_shadow(b, blur=16, offset_y=4, alpha=60, color=t_.primary)
     if on_click:
         b.clicked.connect(on_click)
     if min_w:
@@ -299,19 +332,34 @@ def combo_box(items, value=None, on_change=None, parent: QWidget = None,
     return cb
 
 
-def badge(text: str, parent: QWidget = None) -> QLabel:
-    """药丸徽章：青柠渐变底 + 主色文字，紧凑精致（v2: 渐变底色）。"""
+def badge(text: str, parent: QWidget = None, style: str = "default") -> QLabel:
+    """药丸徽章：青柠渐变底 + 主色文字，紧凑精致（v2: 渐变底色）。
+
+    Args:
+        style: 样式类型
+            - "default": 默认青柠渐变底（无背景图时使用）
+            - "overlay": 白色半透明底+白色文字（有背景图时使用，确保可读性）
+    """
     t = get_current_theme()
     lab = QLabel(text, parent)
-    # v2: 使用渐变底色替代纯色
-    grad = (f"qlineargradient(x1:0, y1:0, x2:1, y2:0,"
-            f" stop:0 {t.primary_soft}, stop:1 {hex_rgba(t.primary, 0.2)})")
-    lab.setStyleSheet(
-        f"background:{grad}; color:{t.primary_ghost};"
-        f" border-radius:999px; padding:3px 12px;"
-        f" font-weight:600; font-size:12px;"
-        f" border:1px solid {hex_rgba(t.primary, 0.2)};"
-    )
+    if style == "overlay":
+        # 有背景图时：半透明白色背景 + 白色文字 + 细描边
+        lab.setStyleSheet(
+            f"background:rgba(255,255,255,0.22); color:#FFFFFF;"
+            f" border-radius:999px; padding:3px 12px;"
+            f" font-weight:600; font-size:12px;"
+            f" border:1px solid rgba(255,255,255,0.35);"
+        )
+    else:
+        # 默认：青柠渐变底色
+        grad = (f"qlineargradient(x1:0, y1:0, x2:1, y2:0,"
+                f" stop:0 {t.primary_soft}, stop:1 {hex_rgba(t.primary, 0.2)})")
+        lab.setStyleSheet(
+            f"background:{grad}; color:{t.primary_ghost};"
+            f" border-radius:999px; padding:3px 12px;"
+            f" font-weight:600; font-size:12px;"
+            f" border:1px solid {hex_rgba(t.primary, 0.2)};"
+        )
     return lab
 
 
@@ -718,7 +766,7 @@ class CalendarDateEdit(QWidget):
         self._line.setReadOnly(True)
         self._line.setCursor(Qt.CursorShape.PointingHandCursor)
         self._line.setText(self._date.toString(self._format))
-        self._line.setFixedHeight(36)
+        self._line.setFixedHeight(32)
         self._line.setStyleSheet(f"""
             QLineEdit {{
                 background: {t.surface};
@@ -739,7 +787,7 @@ class CalendarDateEdit(QWidget):
 
         # 可爱日历图标按钮（与输入框等高）
         self._btn = QPushButton()
-        self._btn.setFixedSize(36, 36)
+        self._btn.setFixedSize(32, 32)
         self._btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn.setToolTip("选择日期")
         self._btn.setStyleSheet(f"""
@@ -747,8 +795,8 @@ class CalendarDateEdit(QWidget):
                 background: {t.surface};
                 border: 1px solid {t.border};
                 border-left: none;
-                border-top-right-radius: {t.radius_sm}px;
-                border-bottom-right-radius: {t.radius_sm}px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 0px;
                 border-top-left-radius: 0px;
                 border-bottom-left-radius: 0px;
                 padding: 0;
@@ -775,8 +823,8 @@ class CalendarDateEdit(QWidget):
         else:
             color = "#5B8A3A"
             fill = "#E0EFD0"
-        self._btn.setIcon(_make_calendar_icon(size=20, color=color, fill_color=fill))
-        self._btn.setIconSize(QSize(20, 20))
+        self._btn.setIcon(_make_calendar_icon(size=16, color=color, fill_color=fill))
+        self._btn.setIconSize(QSize(16, 16))
 
     # ── 日历弹出 ──
     def _toggle_calendar(self):
@@ -939,8 +987,8 @@ class CalendarDateEdit(QWidget):
                 background: {t.surface};
                 border: 1px solid {t.border};
                 border-left: none;
-                border-top-right-radius: {t.radius_sm}px;
-                border-bottom-right-radius: {t.radius_sm}px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 0px;
                 border-top-left-radius: 0px;
                 border-bottom-left-radius: 0px;
                 padding: 0; margin: 0;
@@ -980,41 +1028,20 @@ class PlusMinusSpinBox(QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
-        self._line = QLineEdit()
-        self._line.setReadOnly(True)
-        self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._line.setFixedHeight(36)
-        self._line.setStyleSheet(f"""
-            QLineEdit {{
-                background: {t.surface};
-                color: {t.text};
-                border: 1px solid {t.border};
-                border-right: none;
-                border-top-right-radius: 0px;
-                border-bottom-right-radius: 0px;
-                border-top-left-radius: {t.radius_sm}px;
-                border-bottom-left-radius: {t.radius_sm}px;
-                padding: 0 8px;
-                font-size: 13px;
-                font-weight: 600;
-                font-family: {t.font_b};
-            }}
-        """)
-        lay.addWidget(self._line, 1)
-
-        self._btn_plus = QPushButton("+")
-        self._btn_plus.setFixedSize(36, 36)
-        self._btn_plus.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._btn_plus.setStyleSheet(f"""
+        # 减号按钮（左侧）
+        self._btn_minus = QPushButton("\u2212")
+        self._btn_minus.setFixedSize(32, 32)
+        self._btn_minus.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_minus.setStyleSheet(f"""
             QPushButton {{
                 background: {t.surface};
                 color: {t.primary};
                 border: 1px solid {t.border};
-                border-left: none;
+                border-right: none;
+                border-top-left-radius: {t.radius_sm}px;
+                border-bottom-left-radius: {t.radius_sm}px;
                 border-top-right-radius: 0px;
                 border-bottom-right-radius: 0px;
-                border-top-left-radius: 0px;
-                border-bottom-left-radius: 0px;
                 font-size: 16px;
                 font-weight: 700;
                 padding: 0;
@@ -1023,19 +1050,42 @@ class PlusMinusSpinBox(QWidget):
             QPushButton:hover {{
                 background: {hex_rgba(t.primary, 0.10)};
                 border: 1px solid {t.primary};
-                border-left: none;
+                border-right: none;
             }}
             QPushButton:pressed {{
                 background: {hex_rgba(t.primary, 0.18)};
             }}
         """)
-        self._btn_plus.clicked.connect(self._on_plus)
-        lay.addWidget(self._btn_plus)
+        self._btn_minus.clicked.connect(self._on_minus)
 
-        self._btn_minus = QPushButton("\u2212")
-        self._btn_minus.setFixedSize(36, 36)
-        self._btn_minus.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._btn_minus.setStyleSheet(f"""
+        # 数值显示（中间）
+        self._line = QLineEdit()
+        self._line.setReadOnly(True)
+        self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._line.setFixedHeight(32)
+        self._line.setStyleSheet(f"""
+            QLineEdit {{
+                background: {t.surface};
+                color: {t.text};
+                border: 1px solid {t.border};
+                border-left: none;
+                border-right: none;
+                border-top-left-radius: 0px;
+                border-bottom-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 0px;
+                padding: 0 8px;
+                font-size: 13px;
+                font-weight: 600;
+                font-family: {t.font_b};
+            }}
+        """)
+
+        # 加号按钮（右侧）
+        self._btn_plus = QPushButton("+")
+        self._btn_plus.setFixedSize(32, 32)
+        self._btn_plus.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_plus.setStyleSheet(f"""
             QPushButton {{
                 background: {t.surface};
                 color: {t.primary};
@@ -1059,8 +1109,14 @@ class PlusMinusSpinBox(QWidget):
                 background: {hex_rgba(t.primary, 0.18)};
             }}
         """)
-        self._btn_minus.clicked.connect(self._on_minus)
+        self._btn_plus.clicked.connect(self._on_plus)
+
         lay.addWidget(self._btn_minus)
+        lay.addWidget(self._line, 1)
+        lay.addWidget(self._btn_plus)
+
+        # 可选的单位标签（放在+按钮右侧，框外）
+        self._unit_label = None
 
         self._update_display()
 
@@ -1117,6 +1173,25 @@ class PlusMinusSpinBox(QWidget):
         self._suffix = suffix
         self._update_display()
 
+    def setUnitOutside(self, unit):
+        """将单位标签放在+按钮右侧（框外），与新建待办对话框的 _slider_row 一致。
+
+        调用后 setSuffix 不再生效（单位不再显示在框内）。
+        """
+        t = get_current_theme()
+        if self._unit_label is None:
+            self._unit_label = QLabel(unit)
+            self._unit_label.setStyleSheet(
+                f"color:{t.text_muted}; font-size:13px; padding-left:8px;")
+            self._unit_label.setAlignment(
+                Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            self.layout().addWidget(self._unit_label)
+        else:
+            self._unit_label.setText(unit)
+        # 清空框内 suffix，避免重复显示
+        self._suffix = ""
+        self._update_display()
+
     def setSpecialValueText(self, text):
         pass
 
@@ -1161,41 +1236,20 @@ class PlusMinusTimeEdit(QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
-        self._line = QLineEdit()
-        self._line.setReadOnly(True)
-        self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._line.setFixedHeight(36)
-        self._line.setStyleSheet(f"""
-            QLineEdit {{
-                background: {t.surface};
-                color: {t.text};
-                border: 1px solid {t.border};
-                border-right: none;
-                border-top-right-radius: 0px;
-                border-bottom-right-radius: 0px;
-                border-top-left-radius: {t.radius_sm}px;
-                border-bottom-left-radius: {t.radius_sm}px;
-                padding: 0 8px;
-                font-size: 13px;
-                font-weight: 600;
-                font-family: {t.font_b};
-            }}
-        """)
-        lay.addWidget(self._line, 1)
-
-        self._btn_plus = QPushButton("+")
-        self._btn_plus.setFixedSize(36, 36)
-        self._btn_plus.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._btn_plus.setStyleSheet(f"""
+        # 减号按钮（左侧）
+        self._btn_minus = QPushButton("−")
+        self._btn_minus.setFixedSize(32, 32)
+        self._btn_minus.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_minus.setStyleSheet(f"""
             QPushButton {{
                 background: {t.surface};
                 color: {t.primary};
                 border: 1px solid {t.border};
-                border-left: none;
+                border-right: none;
+                border-top-left-radius: {t.radius_sm}px;
+                border-bottom-left-radius: {t.radius_sm}px;
                 border-top-right-radius: 0px;
                 border-bottom-right-radius: 0px;
-                border-top-left-radius: 0px;
-                border-bottom-left-radius: 0px;
                 font-size: 16px;
                 font-weight: 700;
                 padding: 0;
@@ -1204,19 +1258,42 @@ class PlusMinusTimeEdit(QWidget):
             QPushButton:hover {{
                 background: {hex_rgba(t.primary, 0.10)};
                 border: 1px solid {t.primary};
-                border-left: none;
+                border-right: none;
             }}
             QPushButton:pressed {{
                 background: {hex_rgba(t.primary, 0.18)};
             }}
         """)
-        self._btn_plus.clicked.connect(self._on_plus)
-        lay.addWidget(self._btn_plus)
+        self._btn_minus.clicked.connect(self._on_minus)
 
-        self._btn_minus = QPushButton("−")
-        self._btn_minus.setFixedSize(36, 36)
-        self._btn_minus.setCursor(Qt.CursorShape.PointingHandCursor)
-        self._btn_minus.setStyleSheet(f"""
+        # 时间显示（中间）
+        self._line = QLineEdit()
+        self._line.setReadOnly(True)
+        self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self._line.setFixedHeight(32)
+        self._line.setStyleSheet(f"""
+            QLineEdit {{
+                background: {t.surface};
+                color: {t.text};
+                border: 1px solid {t.border};
+                border-left: none;
+                border-right: none;
+                border-top-left-radius: 0px;
+                border-bottom-left-radius: 0px;
+                border-top-right-radius: 0px;
+                border-bottom-right-radius: 0px;
+                padding: 0 8px;
+                font-size: 13px;
+                font-weight: 600;
+                font-family: {t.font_b};
+            }}
+        """)
+
+        # 加号按钮（右侧）
+        self._btn_plus = QPushButton("+")
+        self._btn_plus.setFixedSize(32, 32)
+        self._btn_plus.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._btn_plus.setStyleSheet(f"""
             QPushButton {{
                 background: {t.surface};
                 color: {t.primary};
@@ -1240,8 +1317,11 @@ class PlusMinusTimeEdit(QWidget):
                 background: {hex_rgba(t.primary, 0.18)};
             }}
         """)
-        self._btn_minus.clicked.connect(self._on_minus)
+        self._btn_plus.clicked.connect(self._on_plus)
+
         lay.addWidget(self._btn_minus)
+        lay.addWidget(self._line, 1)
+        lay.addWidget(self._btn_plus)
 
         self._update_display()
 

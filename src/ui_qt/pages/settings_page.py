@@ -251,7 +251,7 @@ class SettingsPage(PageBase):
         self.sp_break = PlusMinusSpinBox()
         self.sp_break.setRange(1, 120)
         self.sp_break.setValue(break_secs // 60)
-        self.sp_break.setSuffix(" 分钟")
+        self.sp_break.setUnitOutside("分钟")
         self.sp_break.setFixedWidth(130)
         self.sp_break.valueChanged.connect(
             lambda v: self.settings_dao.set("default_break_duration", str(v * 60)))
@@ -266,7 +266,7 @@ class SettingsPage(PageBase):
         self.sp_pause = PlusMinusSpinBox()
         self.sp_pause.setRange(0, 60)
         self.sp_pause.setValue(int(max_pause))
-        self.sp_pause.setSuffix(" 分钟")
+        self.sp_pause.setUnitOutside("分钟")
         self.sp_pause.setFixedWidth(130)
         self.sp_pause.valueChanged.connect(
             lambda v: self.settings_dao.set("max_pause_minutes", str(v)))

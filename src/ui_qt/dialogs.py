@@ -299,6 +299,7 @@ class TodoDialog(_CardDialog):
         lay.setSpacing(12)  # 统一行间距
 
         self.ed_title = line_edit("待办名称", value=td.get("title", ""))
+        self.ed_title.setFixedHeight(34)
         groups = self.state.group_dao.list()
         self.cb_group = combo_box(
             [("0", "未分类")] + [(str(g["id"]), g["name"]) for g in groups],
@@ -343,6 +344,7 @@ class TodoDialog(_CardDialog):
 
         self.ed_habit_title = line_edit("事项名称",
                                          value=td.get("title", ""))
+        self.ed_habit_title.setFixedHeight(34)
 
         # 频率
         self.cb_frequency = combo_box(
@@ -379,8 +381,8 @@ class TodoDialog(_CardDialog):
         # 目标量移到标签位置，与频率/计时模式对齐一致
         row_amount = QHBoxLayout(); row_amount.setSpacing(8)
         row_amount.addWidget(self._field_label("目标量"), 0)
-        row_amount.addWidget(self.ed_habit_amount, 1)
-        row_amount.addWidget(self.cb_habit_unit, 0)
+        row_amount.addWidget(self.ed_habit_amount, 1, Qt.AlignmentFlag.AlignVCenter)
+        row_amount.addWidget(self.cb_habit_unit, 0, Qt.AlignmentFlag.AlignVCenter)
         lay.addLayout(row_amount)
 
         row_timer = QHBoxLayout(); row_timer.setSpacing(8)
@@ -400,6 +402,7 @@ class TodoDialog(_CardDialog):
 
         self.ed_goal_title = line_edit("目标名称",
                                         value=td.get("title", ""))
+        self.ed_goal_title.setFixedHeight(34)
 
         # 目标类型：每日专注时长目标
         self.cb_goal_type = combo_box(
@@ -470,26 +473,25 @@ class TodoDialog(_CardDialog):
         self._adjust_size_for_tab(index)
 
     def _adjust_size_for_tab(self, index):
-        """根据当前Tab内容高度精确调整对话框大小。"""
-        # 获取当前可见面板的推荐高度
-        panels = [self._normal_panel, self._habit_panel, self._goal_panel]
-        current_panel = panels[index]
-        # 强制布局计算
-        current_panel.adjustSize()
-        panel_h = current_panel.sizeHint().height()
-        # Tab栏高度（按钮36px + spacing）
-        tab_bar_h = 36 + 4
-        # 容器内边距
-        container_padding = 12 + 12  # top + bottom
-        # 对话框固定部分：标题栏 + body内边距 + 按钮栏 + 分割线
-        # 标题栏约 52px，按钮栏约 52px，body margins 24+24=48，分割线 1px
-        # 注意：背景图选择区已放入 tab 容器，其高度计入 panel_h，无需额外加
-        fixed_h = 52 + 48 + 52 + 1 + 20  # 大约 173px
-        total_h = fixed_h + tab_bar_h + container_padding + panel_h
+        """根据当前Tab内容高度精确调整对话框大小。
+
+        采用 adjustSize() 让 Qt 基于当前可见内容（仅当前面板 + 背景图 +
+        Tab栏 + 按钮栏）自动计算自然高度，避免固定常数估算导致的裁切/留白。
+        """
+        # 确保仅当前面板参与高度计算（隐藏面板不计入布局 sizeHint）
+        self._normal_panel.setVisible(index == 0)
+        self._habit_panel.setVisible(index == 1)
+        self._goal_panel.setVisible(index == 2)
+        # 临时放开固定高度，让 Qt 依据可见内容计算自然高度
+        self.setFixedHeight(16777215)  # QWIDGETSIZE_MAX
+        self.adjustSize()
+        h = self.height()
+        # 加一点安全边距，避免内容被裁切（尤其含 PlusMinusSpinBox 的行）
+        h += 8
         # 限制最小/最大高度
-        total_h = max(total_h, 420)
-        total_h = min(total_h, 760)
-        self.setFixedHeight(total_h)
+        h = max(h, 440)
+        h = min(h, 800)
+        self.setFixedHeight(h)
 
     def _update_tab_style(self):
         # 选中态由全局 #segTab:checked 状态机统一驱动，不再内联重写 hover
@@ -541,10 +543,10 @@ class TodoDialog(_CardDialog):
         sb.setValue(value)
         sb.setFixedWidth(130)
 
-        # 单位标签
+        # 单位标签（放在+按钮右侧，与数值框有间距）
         unit_lbl = QLabel(unit)
-        unit_lbl.setStyleSheet(f"color:{t.text_muted}; font-size:13px;")
-        unit_lbl.setFixedWidth(36)
+        unit_lbl.setStyleSheet(f"color:{t.text_muted}; font-size:13px; padding-left: 8px;")
+        unit_lbl.setFixedWidth(44)
         unit_lbl.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
 
         # 滑块↔输入框联动：当 hi=None 时，输入框值超出滑块范围则不更新滑块
@@ -583,10 +585,10 @@ class TodoDialog(_CardDialog):
         h = QHBoxLayout()
         h.setSpacing(12)
         h.addStretch(1)
-        cancel = ghost_button("取消", on_click=self.reject)
-        ok = primary_button("确认", on_click=self._save)
-        h.addWidget(cancel)
-        h.addWidget(ok)
+        cancel = ghost_button("取消", on_click=self.reject, min_w=88)
+        ok = primary_button("确认", on_click=self._save, min_w=88)
+        h.addWidget(cancel, 0, Qt.AlignmentFlag.AlignVCenter)
+        h.addWidget(ok, 0, Qt.AlignmentFlag.AlignVCenter)
         self.body.addLayout(h)
 
     # ---------- 保存 ----------
@@ -799,14 +801,10 @@ class MoreTodoSettingsDialog(_CardDialog):
         h = QHBoxLayout()
         h.setSpacing(12)
         h.addStretch(1)
-        close_btn = ghost_button("关闭", on_click=self.reject)
-        save_btn = primary_button("保存", on_click=self._on_confirm)
-        close_btn.setFixedHeight(36)
-        save_btn.setFixedHeight(36)
-        close_btn.setMinimumWidth(80)
-        save_btn.setMinimumWidth(80)
-        h.addWidget(close_btn)
-        h.addWidget(save_btn)
+        close_btn = ghost_button("关闭", on_click=self.reject, min_w=88)
+        save_btn = primary_button("保存", on_click=self._on_confirm, min_w=88)
+        h.addWidget(close_btn, 0, Qt.AlignmentFlag.AlignVCenter)
+        h.addWidget(save_btn, 0, Qt.AlignmentFlag.AlignVCenter)
         body.addLayout(h)
 
     def _on_confirm(self):
@@ -830,8 +828,8 @@ class GroupDialog(_CardDialog):
         self.ed_name = line_edit("待办集名称")
         self.body.addWidget(self.ed_name)
         h = QHBoxLayout(); h.addStretch(1)
-        h.addWidget(ghost_button("取消", on_click=self.reject))
-        h.addWidget(primary_button("保存", on_click=self._save))
+        h.addWidget(ghost_button("取消", on_click=self.reject, min_w=88), 0, Qt.AlignmentFlag.AlignVCenter)
+        h.addWidget(primary_button("保存", on_click=self._save, min_w=88), 0, Qt.AlignmentFlag.AlignVCenter)
         self.body.addLayout(h)
         self.on_saved = None
 
@@ -873,8 +871,8 @@ class PlanDialog(_CardDialog):
         self.body.addWidget(self.dp_date)
         self.body.addWidget(self.ed_remark)
         h = QHBoxLayout(); h.addStretch(1)
-        h.addWidget(ghost_button("取消", on_click=self.reject, icon_name="close"))
-        h.addWidget(primary_button("保存", on_click=self._save, icon_name="check"))
+        h.addWidget(ghost_button("取消", on_click=self.reject, min_w=88), 0, Qt.AlignmentFlag.AlignVCenter)
+        h.addWidget(primary_button("保存", on_click=self._save, min_w=88), 0, Qt.AlignmentFlag.AlignVCenter)
         self.body.addLayout(h)
 
     def _save(self):
@@ -919,8 +917,8 @@ class DBConfigDialog(_CardDialog):
         self.body.addWidget(self.lbl_status)
         h = QHBoxLayout(); h.addStretch(1)
         h.addWidget(ghost_button("测试连接", on_click=self._on_test, icon_name="refresh"))
-        h.addWidget(ghost_button("取消", on_click=self.reject))
-        h.addWidget(primary_button("保存并连接", on_click=self._on_ok))
+        h.addWidget(ghost_button("取消", on_click=self.reject, min_w=88), 0, Qt.AlignmentFlag.AlignVCenter)
+        h.addWidget(primary_button("保存并连接", on_click=self._on_ok, min_w=88), 0, Qt.AlignmentFlag.AlignVCenter)
         self.body.addLayout(h)
 
     def current_config(self) -> DBConfig:

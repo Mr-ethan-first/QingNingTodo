@@ -239,6 +239,13 @@ class MainWindow(QMainWindow):
         state.on_start_focus = self._on_start_focus
         state.on_focus_finished = self._on_focus_finished
 
+        # 子进程/子窗口管理：主程序退出时联动关闭所有子窗口与子进程，
+        # 避免残留窗口（对话框/Toast）或子进程导致主进程无法退出。
+        self._child_processes = []
+        app = QApplication.instance()
+        if app is not None:
+            app.aboutToQuit.connect(self._cleanup_on_quit)
+
         self.navigate("todo")
 
     # ---- 页面 ----
@@ -555,8 +562,22 @@ class MainWindow(QMainWindow):
         show_action = menu.addAction("显示主窗口")
         show_action.triggered.connect(self.expand_from_taskbar)
         quit_action = menu.addAction("退出")
-        quit_action.triggered.connect(QApplication.instance().quit)
+        # 走统一退出逻辑：先联动关闭子窗口/子进程，再退出
+        quit_action.triggered.connect(self._quit_from_tray)
         self._tray.setContextMenu(menu)
+
+    def _quit_from_tray(self):
+        """托盘菜单「退出」：联动关闭所有子窗口与子进程后退出。
+
+        托盘退出不经过主窗口 closeEvent（无需二次确认），直接强制退出。
+        """
+        self._cleanup_on_quit()
+        try:
+            if hasattr(self, "_tray") and self._tray is not None:
+                self._tray.hide()
+        except Exception:
+            pass
+        QApplication.instance().quit()
 
     # ---- 无边框窗口：拖拽 / 边缘缩放 ----
     _RESIZE_MARGIN = 6
@@ -880,11 +901,81 @@ class MainWindow(QMainWindow):
             ev.ignore()
 
     def _quit_app(self, ev):
-        """真正退出应用：隐藏托盘图标并退出事件循环。"""
+        """真正退出应用：联动关闭所有子窗口与子进程、隐藏托盘图标并退出事件循环。"""
         ev.accept()
+        self._cleanup_on_quit()
         try:
             if hasattr(self, "_tray") and self._tray is not None:
                 self._tray.hide()
         except Exception:
             pass
         QApplication.instance().quit()
+
+    # ---- 退出联动：关闭所有子窗口与子进程 ----
+    def register_child_process(self, proc):
+        """登记一个子进程（如 subprocess.Popen 实例）。
+
+        应用退出时会自动终止这些子进程，避免残留导致主进程无法退出。
+        """
+        if not hasattr(self, "_child_processes"):
+            self._child_processes = []
+        if proc is not None:
+            self._child_processes.append(proc)
+
+    def _cleanup_on_quit(self):
+        """应用退出前的联动清理：关闭所有仍打开的子窗口、终止所有子进程。
+
+        覆盖两条退出路径：
+        - 任务栏/标题栏关闭主窗口 → closeEvent → _quit_app → quit()
+        - 托盘菜单「退出」→ 直接 QApplication.quit()（由 aboutToQuit 触发本方法）
+        """
+        self._terminate_child_processes()
+        self._close_all_child_windows()
+
+    def _close_all_child_windows(self):
+        """关闭所有非主窗口的顶层窗口（子对话框 / Toast / 弹层等）。
+
+        子窗口默认 WA_QuitOnClose=True，若残留会导致 QApplication 事件循环
+        不退出、主进程无法关闭。此处显式关闭，确保进程完全退出。
+        """
+        app = QApplication.instance()
+        if app is None:
+            return
+        # 使用 list() 快照，避免遍历过程中窗口列表变化
+        for w in list(app.topLevelWidgets()):
+            if w is self:
+                continue
+            try:
+                if w.isVisible():
+                    w.close()
+            except Exception:
+                pass
+
+    def _terminate_child_processes(self):
+        """终止所有已登记的子进程（含进程树），超时则强制杀掉。"""
+        procs = getattr(self, "_child_processes", None)
+        if not procs:
+            return
+        import subprocess as _sp
+        for proc in list(procs):
+            try:
+                if hasattr(proc, "poll") and proc.poll() is None:
+                    # 优先终止整个进程树（Windows 用 taskkill /T，其它用 os.killpg）
+                    pid = getattr(proc, "pid", None)
+                    if _IS_WINDOWS and pid is not None:
+                        try:
+                            _sp.run(["taskkill", "/PID", str(pid), "/T", "/F"],
+                                    capture_output=True, timeout=5)
+                            continue
+                        except Exception:
+                            pass
+                    if hasattr(proc, "terminate"):
+                        proc.terminate()
+                    try:
+                        proc.wait(timeout=3)
+                    except Exception:
+                        if hasattr(proc, "kill"):
+                            proc.kill()
+            except Exception:
+                pass
+        self._child_processes = []

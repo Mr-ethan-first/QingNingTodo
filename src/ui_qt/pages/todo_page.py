@@ -7,8 +7,8 @@ import json
 import os
 import sys
 
-from PyQt6.QtCore import Qt, QMimeData
-from PyQt6.QtGui import QPixmap, QPainter, QColor, QLinearGradient
+from PyQt6.QtCore import Qt, QMimeData, QRectF
+from PyQt6.QtGui import QPixmap, QPainter, QColor, QLinearGradient, QPainterPath, QPen
 from PyQt6.QtWidgets import (
     QDialog, QFrame, QHBoxLayout, QLabel, QMenu, QTimeEdit, QToolButton,
     QVBoxLayout, QWidget, QFileDialog, QMessageBox,
@@ -20,7 +20,7 @@ from src.ui_qt.icons import icon
 from src.ui_qt.pages import PageBase
 from src.ui_qt.widgets import (
     badge, combo_box, hero_banner, primary_button, ghost_button,
-    section_title, line_edit, PlusMinusTimeEdit,
+    section_title, line_edit, PlusMinusTimeEdit, RoundedCard,
 )
 
 TIMER_TYPES = {0: "普通番茄钟", 1: "正计时", 2: "倒计时", 3: "严格模式"}
@@ -42,6 +42,8 @@ class _TodoCard(QFrame):
         self.td = td
         self.groups = groups
         self.setAcceptDrops(True)
+        # 禁止 Qt 自动填充背景，避免 paintEvent 之前绘制直角背景
+        self.setAutoFillBackground(False)
         self._drag_start = None
         self._build_ui()
 
@@ -63,7 +65,7 @@ class _TodoCard(QFrame):
             desc_color = "rgba(255,255,255,0.88)"
             menu_icon_color = "#FFFFFF"
         else:
-            title_color = t.text_muted if done else t.text
+            title_color = t.text
             desc_color = t.text_muted
             menu_icon_color = t.text_muted
 
@@ -94,18 +96,32 @@ class _TodoCard(QFrame):
         desc.setStyleSheet(f"font-size:12px; color:{desc_color};")
 
         # 徽章行（分组 + 类型）
+        # 有背景图时使用 overlay 样式（半透明白底+白字），确保可读性
+        badge_style = "overlay" if has_bg else "default"
         meta = QHBoxLayout()
         meta.setSpacing(8)
-        meta.addWidget(badge(gname))
+        meta.addWidget(badge(gname, style=badge_style))
         type_icon_name = TYPE_ICONS.get(todo_type, "timer")
         type_label = TYPE_LABELS.get(todo_type, "普通")
         if todo_type == 1:
-            meta.addWidget(badge(type_label))
+            meta.addWidget(badge(type_label, style=badge_style))
             habit_unit = td.get("habit_unit") or ""
             habit_target = td.get("habit_target") or ""
             if habit_target:
-                meta.addWidget(QLabel(f"{habit_target} {habit_unit}"))
-        meta.addWidget(badge(timer_label_text))
+                habit_lbl = QLabel(f"{habit_target} {habit_unit}")
+                if has_bg:
+                    habit_lbl.setStyleSheet(
+                        f"font-size:12px; color:#FFFFFF; padding:2px 8px;"
+                        f"background:rgba(255,255,255,0.22); border-radius:999px;"
+                        f"border:1px solid rgba(255,255,255,0.35); max-height:20px;")
+                else:
+                    habit_lbl.setStyleSheet(
+                        f"font-size:12px; color:{desc_color}; padding:2px 8px;"
+                        f"background:{t.primary_soft}; border-radius:999px;"
+                        f"border:none; max-height:20px;")
+                habit_lbl.setFixedHeight(24)
+                meta.addWidget(habit_lbl)
+        meta.addWidget(badge(timer_label_text, style=badge_style))
         meta.addStretch(1)
 
         left = QVBoxLayout()
@@ -183,9 +199,9 @@ class _TodoCard(QFrame):
         btn.setMenu(menu)
 
         tick = QFrame()
-        tick.setFixedSize(4, 42)  # 稍微加长以匹配内容
+        tick.setFixedSize(4, 48)  # 加长以匹配含 badge 行的内容高度
         tick.setStyleSheet(
-            f"background:{t.primary if not done else t.text_subtle}; border-radius:999px;"
+            f"background:{t.primary}; border-radius:999px;"
         )
 
         row = QHBoxLayout()
@@ -194,18 +210,10 @@ class _TodoCard(QFrame):
         row.addLayout(left, 1)
         row.addWidget(btn)
 
-        self.setObjectName("panel")
-        if has_bg:
-            # 有背景图：面板背景透明，由 paintEvent 自绘圆角背景 + 半透明遮罩。
-            # 此前的 BUG 根因：局部 QSS 未声明 background，全局 QSS 的
-            # QFrame#panel{background:surface} 仍生效，super().paintEvent 会把
-            # 不透明底色重绘在背景图之上，导致"更换背景无效"。
-            self.setStyleSheet("#panel{background:transparent; border:none;}")
-        else:
-            # 无背景图：保持原有纯色样式
-            self.setStyleSheet(
-                f"#panel{{background:{t.surface_variant if not done else t.surface};"
-                f" border:1px solid {t.border}; border-radius:{t.radius_md}px;}}")
+        self.setObjectName("todoCard")
+        # 不使用 #panel 的 QSS 样式，避免 QSS border-radius 不能裁剪背景
+        # 导致四角直角阴影；由 paintEvent 完全接管圆角背景和边框绘制
+        self.setStyleSheet("QFrame#todoCard{background:transparent; border:none;}")
         # 统一内边距 14x12
         c_lay = QHBoxLayout(self)
         c_lay.setContentsMargins(14, 12, 12, 12)
@@ -257,12 +265,11 @@ class _TodoCard(QFrame):
     def paintEvent(self, ev):
         """有背景图时自绘圆角背景 + 半透明遮罩，呈现透明卡片风格。
 
-        注意：有背景时不调用 super().paintEvent()，避免全局 QSS 的不透明
-        底色把背景图重新覆盖（此前"更换背景无效"的根因）。
+        无背景图时，先设置圆角裁剪路径再调用 super().paintEvent()，
+        确保 QSS 的 background 和 border 都被裁剪到圆角内，
+        避免四角出现直角阴影。
         """
         if self._bg_pixmap and not self._bg_pixmap.isNull():
-            from PyQt6.QtGui import QPainterPath, QPen
-            from PyQt6.QtCore import QRectF
             painter = QPainter(self)
             try:
                 painter.setRenderHint(QPainter.RenderHint.Antialiasing)
@@ -270,6 +277,9 @@ class _TodoCard(QFrame):
                 t = get_current_theme()
                 radius = t.radius_md
                 rect = QRectF(self.rect())
+                # 先用父窗口背景色填充整个矩形，覆盖 Qt 在 paintEvent 之前
+                # 可能绘制的直角背景，消除四角直角
+                painter.fillRect(self.rect(), QColor(t.surface))
                 path = QPainterPath()
                 path.addRoundedRect(rect, radius, radius)
                 painter.setClipPath(path)
@@ -297,7 +307,28 @@ class _TodoCard(QFrame):
             finally:
                 painter.end()
         else:
-            super().paintEvent(ev)
+            # 无背景图：完全手动绘制圆角背景和边框
+            t = get_current_theme()
+            radius = t.radius_md
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+            # 先用父窗口背景色填充整个矩形，覆盖 Qt 在 paintEvent 之前
+            # 可能绘制的直角背景（surface_variant），消除四角直角
+            painter.fillRect(self.rect(), QColor(t.surface))
+            # 然后只在圆角路径内绘制卡片背景色
+            path = QPainterPath()
+            path.addRoundedRect(QRectF(self.rect()), radius, radius)
+            painter.setPen(Qt.PenStyle.NoPen)
+            painter.setBrush(QColor(t.surface_variant))
+            painter.drawPath(path)
+            # 绘制边框
+            pen = QPen(QColor(t.border), 1)
+            painter.setPen(pen)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRoundedRect(
+                QRectF(0.5, 0.5, self.width() - 1, self.height() - 1),
+                radius, radius)
+            painter.end()
 
     # ---------- 双击进入专注 ----------
     def mouseDoubleClickEvent(self, ev):
@@ -365,12 +396,12 @@ class _GroupHeader(QFrame):
     def _build(self, name):
         from src.theme import get_current_theme
         t = get_current_theme()
-        self.setObjectName("panel")
+        self.setObjectName("groupHeader")
+        self.setAutoFillBackground(False)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setFixedHeight(36)
-        self.setStyleSheet(
-            f"#panel{{background:{t.surface_variant}; border:1px solid {t.border};"
-            f"border-radius:{t.radius_md}px;}}")
+        # QSS 设为透明，由 paintEvent 绘制圆角背景和边框
+        self.setStyleSheet("QFrame#groupHeader{background:transparent; border:none;}")
         lay = QHBoxLayout(self)
         lay.setContentsMargins(12, 0, 12, 0)
         self._chevron = QLabel("▾" if self._expanded else "▸")
@@ -389,6 +420,31 @@ class _GroupHeader(QFrame):
         self._expanded = expanded
         self._chevron.setText("▾" if expanded else "▸")
 
+    def paintEvent(self, ev):
+        """手动绘制圆角背景和边框，先用父窗口背景色覆盖整个矩形，
+        再用 drawPath 只在圆角路径内绘制卡片背景色，消除四角直角。
+        """
+        t = get_current_theme()
+        radius = t.radius_md
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # 先用父窗口背景色填充整个矩形，覆盖 Qt 可能绘制的直角背景
+        painter.fillRect(self.rect(), QColor(t.surface))
+        # 然后只在圆角路径内绘制卡片背景色
+        path = QPainterPath()
+        path.addRoundedRect(QRectF(self.rect()), radius, radius)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor(t.surface_variant))
+        painter.drawPath(path)
+        # 绘制边框
+        pen = QPen(QColor(t.border), 1)
+        painter.setPen(pen)
+        painter.setBrush(Qt.BrushStyle.NoBrush)
+        painter.drawRoundedRect(
+            QRectF(0.5, 0.5, self.width() - 1, self.height() - 1),
+            radius, radius)
+        painter.end()
+
 
 class TodoPage(PageBase):
     def __init__(self, state):
@@ -406,10 +462,12 @@ class TodoPage(PageBase):
         header = QHBoxLayout()
         header.addWidget(section_title("待办清单", "checklist"))
         header.addStretch(1)
-        header.addWidget(ghost_button("待办集", icon_name="plus",
-                                       on_click=self._add_group))
-        header.addWidget(primary_button("新建待办", icon_name="plus",
-                                         on_click=self._add_todo))
+        header.addWidget(ghost_button("待办集",
+                                       on_click=self._add_group, min_w=100),
+                          0, Qt.AlignmentFlag.AlignVCenter)
+        header.addWidget(primary_button("新建待办",
+                                         on_click=self._add_todo, min_w=100),
+                          0, Qt.AlignmentFlag.AlignVCenter)
         self._lay.addLayout(header)
 
         # Hero
@@ -437,8 +495,9 @@ class TodoPage(PageBase):
         toolbar.addStretch(1)
 
         # 列表
-        self.list_card = QFrame()
-        self.list_card.setObjectName("card")
+        self.list_card = RoundedCard(radius=24)
+        # 不使用 #card 的 QSS 样式，避免 QSS border-radius 与 paintEvent 冲突
+        # 导致四角出现直角阴影；RoundedCard.paintEvent 已自行绘制圆角背景和边框
         self.list_lay = QVBoxLayout(self.list_card)
         self.list_lay.setContentsMargins(18, 18, 18, 18)
         self.list_lay.setSpacing(8)
@@ -454,6 +513,8 @@ class TodoPage(PageBase):
         self.filter_group = self.cb_group.currentData()
         self.filter_status = int(self.cb_status.currentData())
         self._refresh_list()
+        # 重置滚动位置到顶部，避免切换筛选后内容偏移
+        self.verticalScrollBar().setValue(0)
 
     def _refresh_list(self):
         t = self._t
@@ -461,7 +522,9 @@ class TodoPage(PageBase):
         while self.list_lay.count() > 1:
             item = self.list_lay.takeAt(1)
             if item.widget():
-                item.widget().deleteLater()
+                w = item.widget()
+                w.setParent(None)  # 立即从父控件移除，避免布局残留
+                w.deleteLater()
             elif item.layout():
                 self._clear_layout(item.layout())
 
@@ -501,6 +564,7 @@ class TodoPage(PageBase):
             empty.setStyleSheet(
                 f"color:{t.text_muted}; font-size:14px; padding:40px 0;")
             self.list_lay.addWidget(empty)
+            self.list_lay.addStretch(1)
             return
 
         # 指定单个待办集：直接平铺（gid 已约束范围，无需折叠分组）
@@ -763,18 +827,56 @@ class _RemindDialog(QDialog):
         super().__init__(parent)
         self.t = theme
         self.setWindowTitle("设置定时提醒")
-        self.setFixedSize(280, 200)
+        self.setFixedSize(300, 220)
         self.time_value = None
         self._build(existing_time)
 
     def _build(self, existing_time):
         t = self.t
-        self.setStyleSheet(f"background:{t.surface}; border:1px solid {t.border}; "
-                            f"border-radius:{t.radius_lg}px;")
+        # 对话框样式：包含自身外观 + 子控件按钮样式，确保 QSS 正确级联
+        # 注意：QDialog 是顶层窗口，不设置 border/border-radius，否则会在
+        # 矩形窗口内部绘制额外的圆角方框
+        self.setStyleSheet(f"""
+            QDialog {{
+                background: {t.surface};
+            }}
+            QPushButton#primary {{
+                background: {t.primary};
+                color: {t.on_primary};
+                border: none;
+                border-radius: {t.radius_sm}px;
+                padding: 6px 20px;
+                font-weight: 500;
+                font-size: 13px;
+                min-height: 34px;
+                min-width: 72px;
+            }}
+            QPushButton#primary:hover {{ opacity: 0.9; }}
+            QPushButton#primary:pressed {{ background: {t.primary_pressed}; }}
+            QPushButton#ghost {{
+                background: transparent;
+                color: {t.text};
+                border: 1px solid {t.border};
+                border-radius: {t.radius_sm}px;
+                padding: 6px 20px;
+                font-weight: 500;
+                font-size: 13px;
+                min-height: 34px;
+                min-width: 72px;
+            }}
+            QPushButton#ghost:hover {{
+                background: {t.surface_variant};
+                border-color: {t.text_muted};
+            }}
+            QPushButton#ghost:pressed {{
+                background: {t.surface_variant};
+                color: {t.text_muted};
+            }}
+        """)
 
         root = QVBoxLayout(self)
-        root.setContentsMargins(20, 16, 20, 16)
-        root.setSpacing(12)
+        root.setContentsMargins(24, 20, 24, 20)
+        root.setSpacing(16)
 
         self.time_edit = PlusMinusTimeEdit()
         self.time_edit.setFixedWidth(180)
@@ -787,10 +889,15 @@ class _RemindDialog(QDialog):
             self.time_edit.setTime(QTime(20, 0))
         root.addWidget(self.time_edit, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        h = QHBoxLayout(); h.addStretch(1)
-        cancel = ghost_button("取消", on_click=self.reject)
-        ok = primary_button("确定", on_click=self._on_ok)
-        h.addWidget(cancel); h.addWidget(ok)
+        # 按钮行：右对齐，统一高度
+        h = QHBoxLayout()
+        h.setSpacing(12)
+        h.addStretch(1)
+        cancel = ghost_button("取消", on_click=self.reject, min_w=88)
+        ok = primary_button("确定", on_click=self._on_ok, min_w=88)
+        # 强制对齐：同一行垂直居中
+        h.addWidget(cancel, 0, Qt.AlignmentFlag.AlignVCenter)
+        h.addWidget(ok, 0, Qt.AlignmentFlag.AlignVCenter)
         root.addLayout(h)
 
     def _on_ok(self):
