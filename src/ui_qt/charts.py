@@ -250,16 +250,111 @@ class Heatmap(QWidget):
         return f"rgba({c.red()}, {c.green()}, {c.blue()}, {c.alphaF():.3f})"
 
 
-# ======================= 饼图调色板 =======================
+# ======================= 饼图调色板（18 色） =======================
 PIE_PALETTE = [
     "#8CC44A", "#26A69A", "#E6A050", "#E75244", "#5C6BC0",
-    "#AB47BC", "#26A69A", "#EF6C00", "#78909C", "#EC407A",
+    "#AB47BC", "#EF6C00", "#78909C", "#EC407A", "#42A5F5",
+    "#66BB6A", "#FFA726", "#7E57C2", "#26C6DA", "#FF8A65",
+    "#9CCC65", "#8D6E63", "#F06292",
 ]
+
+
+# ======================= HBarChart 横向柱状图 =======================
+class HBarChart(QWidget):
+    """横向柱状图（标签在左侧，柱子从左到右延伸，末端带数值）。
+
+    适用于分布类数据：起床/睡眠时间段分布、专注时长按小时分布等。
+    每根柱子带数值标签，清晰展示分布到哪里。
+    """
+
+    def __init__(self, accent: str = None, unit: str = ""):
+        super().__init__()
+        self._items = []
+        self._accent = accent
+        self._unit = unit  # "次" / "分" 等
+        self.setMinimumHeight(200)
+
+    def set_data(self, items, accent: str = None):
+        """items: [{"label": str, "value": int}, ...]"""
+        self._items = items or []
+        if accent:
+            self._accent = accent
+        # 根据条目数自适应高度
+        n = len(self._items)
+        self.setMinimumHeight(max(200, n * 32 + 20))
+        self.update()
+
+    def paintEvent(self, ev):
+        if not self._items:
+            self._empty("暂无数据", ev)
+            return
+        t = get_current_theme()
+        accent = self._accent or t.primary
+        p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        w, h = self.width(), self.height()
+
+        n = len(self._items)
+        # 布局：左侧标签区 | 柱子区 | 右侧数值
+        label_w = 60
+        val_w = 70
+        pad_t = 8
+        pad_b = 8
+        bar_area_w = w - label_w - val_w - 16
+        row_h = (h - pad_t - pad_b) / n
+        bar_h = min(row_h * 0.6, 24)
+
+        maxv = max((it.get("value", 0) for it in self._items), default=1) or 1
+
+        p.setFont(QFont("Microsoft YaHei UI", 10))
+        for i, it in enumerate(self._items):
+            val = it.get("value", 0)
+            y = pad_t + i * row_h + (row_h - bar_h) / 2
+            # 标签
+            label_text = str(it.get("label", ""))
+            p.setPen(QColor(t.text_muted))
+            p.drawText(QRectF(0, y - 2, label_w, bar_h + 4),
+                       Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+                       label_text)
+            # 柱子背景（空柱）
+            bar_x = label_w + 8
+            bg_color = QColor(t.surface_variant)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QBrush(bg_color))
+            p.drawRoundedRect(QRectF(bar_x, y, bar_area_w, bar_h), bar_h / 2, bar_h / 2)
+            # 实际柱子
+            if val > 0:
+                fill_w = (val / maxv) * bar_area_w
+                color = QColor(accent)
+                p.setBrush(QBrush(color))
+                p.drawRoundedRect(QRectF(bar_x, y, fill_w, bar_h), bar_h / 2, bar_h / 2)
+            # 数值标签
+            val_text = f"{val}{self._unit}" if self._unit else str(val)
+            p.setPen(QColor(t.text))
+            p.drawText(QRectF(bar_x + bar_area_w + 8, y - 2, val_w, bar_h + 4),
+                       Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                       val_text)
+
+        p.end()
+        super().paintEvent(ev)
+
+    def _empty(self, msg, ev):
+        t = get_current_theme()
+        p = QPainter(self)
+        p.setPen(QColor(t.text_muted))
+        p.setFont(QFont("Microsoft YaHei UI", 13))
+        p.drawText(self.rect(), Qt.AlignmentFlag.AlignCenter, msg)
+        p.end()
+        super().paintEvent(ev)
 
 
 # ======================= PieChart 饼图 =======================
 class PieChart(QWidget):
-    """QPainter 自绘饼图（扇区 + 引线标签），无外部依赖。"""
+    """QPainter 自绘饼图（扇区 + 引线标签），无外部依赖。
+
+    最多支持 18 个扇区，超出部分合并为"其他"。
+    标签区域自适应高度，确保全部可见。
+    """
 
     def __init__(self):
         super().__init__()
@@ -267,10 +362,22 @@ class PieChart(QWidget):
         self.setMinimumHeight(200)
 
     def set_data(self, items):
-        """items: [{"name": str, "value": int}, ...]"""
-        self._items = [{"name": str(it.get("name", "")),
-                        "value": int(it.get("value", 0))}
-                       for it in (items or [])]
+        """items: [{"name": str, "value": int}, ...]
+
+        最多展示 18 个，超出部分合并为"其他"。
+        """
+        raw = [{"name": str(it.get("name", "")),
+                "value": int(it.get("value", 0))}
+               for it in (items or []) if it.get("value", 0) > 0]
+        # 最多 18 个，超出的合并为"其他"
+        if len(raw) > 18:
+            top = sorted(raw, key=lambda x: x["value"], reverse=True)[:17]
+            other_sum = sum(x["value"] for x in raw[17:])
+            raw = top + [{"name": "其他", "value": other_sum}]
+        self._items = raw
+        # 根据条目数自适应高度
+        n = len(self._items)
+        self.setMinimumHeight(max(200, n * 24 + 40))
         self.update()
 
     def paintEvent(self, ev):
@@ -296,9 +403,10 @@ class PieChart(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         w, h = self.width(), self.height()
 
-        # 饼图半径与位置
-        radius = min(w * 0.3, h * 0.4, 140)
-        cx = w * 0.35
+        n = len(self._items)
+        # 饼图半径与位置：根据条目数动态调整
+        radius = min(w * 0.28, h * 0.35, 120)
+        cx = w * 0.30
         cy = h * 0.5
 
         start_angle = 90 * 16  # 12 点方向起始
@@ -312,26 +420,31 @@ class PieChart(QWidget):
                       start_angle, span)
             start_angle += span
 
-        # 引线标签（右侧）
-        label_x = cx + radius + 20
-        label_y = cy - len(self._items) * 12
-        p.setFont(QFont("Microsoft YaHei UI", 11))
+        # 标签区域（右侧）- 自适应高度，确保全部可见
+        label_x = cx + radius + 24
+        line_h = min(22, max(16, (h - 20) / max(n, 1)))
+        total_label_h = n * line_h
+        label_y_start = max(10, (h - total_label_h) / 2)
+
+        p.setFont(QFont("Microsoft YaHei UI", 10))
         for i, it in enumerate(self._items):
             ratio = it["value"] / total
             color = QColor(PIE_PALETTE[i % len(PIE_PALETTE)])
-            ly = label_y + i * 24
+            ly = label_y_start + i * line_h
             # 色块
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(QBrush(color))
-            p.drawRoundedRect(QRectF(label_x, ly, 12, 12), 2, 2)
-            # 名称
-            name = it["name"] if len(it["name"]) <= 10 else it["name"][:10] + ".."
+            p.drawRoundedRect(QRectF(label_x, ly + (line_h - 12) / 2, 12, 12), 2, 2)
+            # 名称（截断到 12 字符）
+            name = it["name"] if len(it["name"]) <= 12 else it["name"][:12] + ".."
             p.setPen(QColor(t.text))
-            p.drawText(QRectF(label_x + 18, ly - 2, 120, 16), Qt.AlignmentFlag.AlignVCenter, name)
+            p.drawText(QRectF(label_x + 18, ly, 130, line_h),
+                       Qt.AlignmentFlag.AlignVCenter, name)
             # 百分比
             pct = f"{ratio * 100:.1f}%"
             p.setPen(QColor(t.text_muted))
-            p.drawText(QRectF(label_x + 145, ly - 2, 60, 16), Qt.AlignmentFlag.AlignVCenter, pct)
+            p.drawText(QRectF(label_x + 155, ly, 60, line_h),
+                       Qt.AlignmentFlag.AlignVCenter, pct)
 
         p.end()
         super().paintEvent(ev)
@@ -513,7 +626,10 @@ class AreaLineChart(QWidget):
 
 # ======================= MonthHeatmap 月度热力图 =======================
 class MonthHeatmap(QWidget):
-    """月度专注时段分布热力图：X 轴 = 日期(1-31)，Y 轴 = 小时(0-23)。"""
+    """月度专注时段分布热力图：X 轴 = 小时(0-23)，Y 轴 = 日期(1-31)。
+
+    颜色深浅表示专注时长，越深越长。底部带颜色图例和说明文字。
+    """
 
     def __init__(self):
         super().__init__()
@@ -527,7 +643,7 @@ class MonthHeatmap(QWidget):
         self._days_in_month = days_in_month
         for r in rows:
             self._data[(int(r["day"]), int(r["hour"]))] = int(r["total"])
-        self.setMinimumHeight(max(280, days_in_month * 8 + 60))
+        self.setMinimumHeight(max(280, days_in_month * 10 + 80))
         self.update()
 
     def paintEvent(self, ev):
@@ -543,15 +659,16 @@ class MonthHeatmap(QWidget):
             return
 
         w, h = self.width(), self.height()
-        pad_l, pad_r, pad_t, pad_b = 36, 12, 8, 20
+        # 布局：左侧日期标签 | 热力图区域 | 底部图例
+        pad_l, pad_r, pad_t, pad_b = 36, 12, 8, 36
         area_w = w - pad_l - pad_r
         area_h = h - pad_t - pad_b
 
         days = self._days_in_month
         hours = 24
 
-        cell_w = area_w / days
-        cell_h = area_h / hours
+        cell_w = area_w / hours
+        cell_h = area_h / days
 
         # 找最大值用于颜色映射
         maxv = max(self._data.values(), default=1) or 1
@@ -561,15 +678,11 @@ class MonthHeatmap(QWidget):
 
         p.setFont(QFont("Microsoft YaHei UI", 8))
 
+        # 绘制热力图单元格：X=小时, Y=日期
         for d in range(1, days + 1):
-            x = pad_l + (d - 1) * cell_w
-            # 日期标签（每隔几天显示）
-            if days <= 10 or d % max(1, days // 10) == 1 or d == days:
-                p.setPen(QColor(t.text_subtle))
-                p.drawText(QRectF(x, pad_t + area_h + 2, cell_w, 16),
-                           Qt.AlignmentFlag.AlignCenter, str(d))
+            y = pad_t + (d - 1) * cell_h
             for hr in range(hours):
-                y = pad_t + hr * cell_h
+                x = pad_l + hr * cell_w
                 val = self._data.get((d, hr), 0)
                 if val > 0:
                     ratio = min(1.0, val / maxv)
@@ -583,13 +696,53 @@ class MonthHeatmap(QWidget):
                     p.setBrush(QBrush(QColor(t.surface_variant)))
                 p.drawRoundedRect(QRectF(x + 0.5, y + 0.5, cell_w - 1, cell_h - 1), 2, 2)
 
-        # Y 轴小时标签
+        # Y 轴日期标签（左侧，每隔几天显示）
         p.setPen(QColor(t.text_subtle))
-        for hr in range(0, 24, 3):
-            y = pad_t + hr * cell_h + cell_h / 2
+        label_step = max(1, days // 10)
+        for d in range(1, days + 1, label_step):
+            y = pad_t + (d - 1) * cell_h + cell_h / 2
             p.drawText(QRectF(0, y - 6, pad_l - 4, 12),
                        Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
-                       f"{hr:02d}")
+                       f"{d}日")
+
+        # X 轴小时标签（顶部，每3小时）
+        p.setPen(QColor(t.text_subtle))
+        for hr in range(0, 24, 3):
+            x = pad_l + hr * cell_w + cell_w / 2
+            p.drawText(QRectF(x - 12, 0, 24, pad_t),
+                       Qt.AlignmentFlag.AlignCenter, f"{hr:02d}时")
+
+        # 底部颜色图例：渐变色条 + "少 → 多"标签
+        legend_y = pad_t + area_h + 8
+        legend_w = min(200, area_w * 0.5)
+        legend_h = 10
+        legend_x = pad_l
+
+        # 绘制渐变色条（5段）
+        segments = 5
+        seg_w = legend_w / segments
+        for s in range(segments):
+            ratio = s / (segments - 1) if segments > 1 else 0
+            alpha = 0.2 + ratio * 0.8
+            c = QColor(base_color)
+            c.setAlphaF(alpha)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.setBrush(QBrush(c))
+            p.drawRoundedRect(QRectF(legend_x + s * seg_w, legend_y, seg_w, legend_h), 2, 2)
+
+        # 图例文字
+        p.setPen(QColor(t.text_muted))
+        p.setFont(QFont("Microsoft YaHei UI", 9))
+        p.drawText(QRectF(legend_x, legend_y + legend_h + 2, legend_w, 14),
+                   Qt.AlignmentFlag.AlignLeft, "专注少")
+        p.drawText(QRectF(legend_x + legend_w - 40, legend_y + legend_h + 2, 40, 14),
+                   Qt.AlignmentFlag.AlignRight, "专注多")
+
+        # 右侧说明
+        note_x = legend_x + legend_w + 20
+        p.drawText(QRectF(note_x, legend_y - 2, w - note_x - pad_r, legend_h + 4),
+                   Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter,
+                   "颜色越深 = 专注时长越长")
 
         p.end()
         super().paintEvent(ev)

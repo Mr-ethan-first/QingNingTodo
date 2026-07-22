@@ -1302,12 +1302,17 @@ class CloseConfirmDialog(_CardDialog):
         # 底部按钮：最小化到托盘（次选）+ 退出程序（默认）
         btn_row = QHBoxLayout()
         btn_row.addStretch(1)
-        btn_row.addWidget(ghost_button("最小化到托盘", on_click=self._on_tray,
-                                       icon_name="minimize"))
-        self._btn_exit = primary_button("退出程序", on_click=self._on_exit,
-                                        icon_name="close")
+        btn_tray = ghost_button("最小化到托盘", on_click=self._on_tray)
+        btn_tray.setFixedHeight(32)
+        btn_tray.setStyleSheet(
+            f"QPushButton#ghost{{padding:0 12px; font-size:12px; min-width:0;}}")
+        btn_row.addWidget(btn_tray)
+        self._btn_exit = primary_button("退出程序", on_click=self._on_exit)
         self._btn_exit.setDefault(True)
         self._btn_exit.setAutoDefault(True)
+        self._btn_exit.setFixedHeight(32)
+        self._btn_exit.setStyleSheet(
+            f"QPushButton#primary{{padding:0 12px; font-size:12px; min-width:0;}}")
         btn_row.addWidget(self._btn_exit)
         self.body.addLayout(btn_row)
 

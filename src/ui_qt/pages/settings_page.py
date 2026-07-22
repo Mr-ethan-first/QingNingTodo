@@ -224,7 +224,7 @@ class SettingsPage(PageBase):
         # 3b. 严格模式
         self._switch_row(lay, "shield", "严格模式",
                          "学霸模式下，触碰白名单外应用直接结束专注。",
-                         "strict_mode", indent=True)
+                         "strict_mode")
 
         self._sep(lay)
 

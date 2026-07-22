@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (
 )
 
 from src.ui_qt.charts import (
-    AreaLineChart, BarChart, MonthHeatmap,
+    AreaLineChart, BarChart, HBarChart, MonthHeatmap,
     PieChart, StatCard, fmt_minutes,
 )
 from src.ui_qt.icons import icon
@@ -257,11 +257,11 @@ class StatsPage(PageBase):
         # Tab 与图表之间间距
         self._lay.addSpacing(8)
 
-        # 分布柱状图（card 容器）
+        # 分布横向柱状图（card 容器）
         dist_card = card()
         dist_lay = QVBoxLayout(dist_card)
         dist_lay.setContentsMargins(16, 14, 16, 14)
-        self._dist_chart = BarChart(t.primary)
+        self._dist_chart = HBarChart(accent=t.primary, unit="分")
         dist_lay.addWidget(self._dist_chart)
         self._lay.addWidget(dist_card)
 
@@ -328,6 +328,12 @@ class StatsPage(PageBase):
         hm_card = card()
         hm_lay = QVBoxLayout(hm_card)
         hm_lay.setContentsMargins(16, 14, 16, 14)
+        hm_lay.setSpacing(6)
+        # 说明文字
+        hm_desc = QLabel("每行代表一天，每列代表一小时；颜色越深表示该时段专注时长越长")
+        hm_desc.setStyleSheet(f"font-size:12px; color:{self._t.text_muted};")
+        hm_desc.setWordWrap(True)
+        hm_lay.addWidget(hm_desc)
         self._month_heatmap = MonthHeatmap()
         hm_lay.addWidget(self._month_heatmap)
         self._lay.addWidget(hm_card)
@@ -410,7 +416,7 @@ class StatsPage(PageBase):
         frame.setObjectName("card")
         chart_lay = QVBoxLayout(frame)
         chart_lay.setContentsMargins(16, 14, 16, 14)
-        chart = BarChart(t.accent2)
+        chart = HBarChart(accent=t.accent2, unit="次")
         setattr(self, f"_{key}_chart", chart)
         chart_lay.addWidget(chart)
         setattr(self, f"_{key}_frame", frame)
@@ -632,9 +638,47 @@ class StatsPage(PageBase):
         dlg = QDialog(self)
         dlg.setWindowTitle("最近专注记录")
         dlg.setMinimumSize(560, 460)
-        dlg.setStyleSheet(
-            f"background:{t.surface}; color:{t.text};"
-            f"border-radius:{t.radius_lg}px;")
+        dlg.setStyleSheet(f"""
+            QDialog {{
+                background: {t.surface};
+                color: {t.text};
+                border-radius: {t.radius_lg}px;
+            }}
+            QLabel {{
+                background: transparent;
+                color: {t.text};
+            }}
+            QLabel#muted {{
+                color: {t.text_muted};
+            }}
+            QPushButton#ghost {{
+                background: transparent;
+                color: {t.primary};
+                border: 1px solid {t.primary};
+                border-radius: {t.radius_sm}px;
+                padding: 0 16px;
+                font-weight: 500;
+                font-size: 12px;
+            }}
+            QPushButton#ghost:hover {{
+                background: {t.primary_soft};
+            }}
+            QPushButton#ghost:pressed {{
+                background: {t.primary_soft};
+                color: {t.primary_pressed};
+            }}
+            QPushButton#primary {{
+                border: none;
+                border-radius: {t.radius_sm}px;
+                padding: 0 16px;
+                font-weight: 500;
+                font-size: 12px;
+            }}
+            QScrollArea {{
+                background: transparent;
+                border: none;
+            }}
+        """)
         root = QVBoxLayout(dlg)
         root.setContentsMargins(20, 18, 20, 18)
         root.setSpacing(14)
@@ -672,8 +716,7 @@ class StatsPage(PageBase):
 
         h = QHBoxLayout()
         h.addStretch(1)
-        h.addWidget(ghost_button("关闭", on_click=dlg.accept,
-                                  icon_name="close"))
+        h.addWidget(ghost_button("关闭", on_click=dlg.accept))
         root.addLayout(h)
         dlg.exec()
 
@@ -772,6 +815,44 @@ class StatsPage(PageBase):
             QDialog {{
                 background: {self._t.surface};
                 color: {self._t.text};
+            }}
+            QLabel {{
+                background: transparent;
+                color: {self._t.text};
+            }}
+            QLabel#muted {{
+                color: {self._t.text_muted};
+            }}
+            QLabel#subtle {{
+                color: {self._t.text_subtle};
+            }}
+            QPushButton#ghost {{
+                background: transparent;
+                color: {self._t.primary};
+                border: 1px solid {self._t.primary};
+                border-radius: {self._t.radius_sm}px;
+                padding: 0 16px;
+                font-weight: 500;
+                font-size: 12px;
+            }}
+            QPushButton#ghost:hover {{
+                background: {self._t.primary_soft};
+            }}
+            QPushButton#ghost:pressed {{
+                background: {self._t.primary_soft};
+                color: {self._t.primary_pressed};
+            }}
+            QPushButton#primary {{
+                background: {self._t.primary};
+                color: {self._t.on_primary};
+                border: none;
+                border-radius: {self._t.radius_sm}px;
+                padding: 0 16px;
+                font-weight: 500;
+                font-size: 12px;
+            }}
+            QPushButton#primary:hover {{
+                background: {self._t.primary_hover};
             }}
         """)
         lay = QVBoxLayout(dlg)
@@ -924,7 +1005,7 @@ class StatsPage(PageBase):
         self.card_avg_daily.set_value(fmt_minutes(avg_sec))
         self.card_today_count.set_value(f"{today['count']} 次")
         self.card_today_duration.set_value(fmt_minutes(today["total_seconds"]))
-        self.card_today_abandoned.set_value(f"{abandoned} 次")
+        self.card_today_abandoned.set_value(f"{abandoned['count']} 次")
 
     # ---------- 专注时长分布 ---------- #
     def _refresh_distribution(self):
@@ -937,12 +1018,12 @@ class StatsPage(PageBase):
             self._dist_date_label.setText(d.strftime("%Y-%m-%d"))
             # 日视图：按小时分布
             hours = self.stats.hourly_range(d)
-            items = [{"label": f"{h:02d}", "value": int(r["total"])} for h, r in
+            items = [{"label": f"{h}时", "value": int(r["total"]) // 60} for h, r in
                      [(i, next((x for x in hours if int(x["hour"]) == i), {"total": 0}))
                       for i in range(24)]]
             self._dist_chart.set_data(items, t.primary)
             pie_data = self.stats.todo_distribution(d, d)
-            self._dist_pie.set_data([{"name": r["name"], "value": int(r["total"])} for r in pie_data])
+            self._dist_pie.set_data([{"name": r["title"], "value": int(r["total"])} for r in pie_data])
 
         elif tab == TAB_WEEK:
             # 使用 _dist_date 所在周
@@ -950,20 +1031,20 @@ class StatsPage(PageBase):
             sunday = monday + datetime.timedelta(days=6)
             self._dist_date_label.setText(f"{monday.strftime('%m/%d')} - {sunday.strftime('%m/%d')}")
             rows = self.stats.daily_range(monday, sunday)
-            items = [{"label": _md(r["belong_date"]), "value": int(r["total"])} for r in rows]
+            items = [{"label": _md(r["belong_date"]), "value": int(r["total"]) // 60} for r in rows]
             self._dist_chart.set_data(items, t.primary)
             pie_data = self.stats.todo_distribution(monday, sunday)
-            self._dist_pie.set_data([{"name": r["name"], "value": int(r["total"])} for r in pie_data])
+            self._dist_pie.set_data([{"name": r["title"], "value": int(r["total"])} for r in pie_data])
 
         elif tab == TAB_MONTH:
             y, m = d.year, d.month
             self._dist_date_label.setText(f"{y}-{m:02d}")
             first, last = _month_range(y, m)
             rows = self.stats.daily_range(first, last)
-            items = [{"label": _md(r["belong_date"]), "value": int(r["total"])} for r in rows]
+            items = [{"label": _md(r["belong_date"]), "value": int(r["total"]) // 60} for r in rows]
             self._dist_chart.set_data(items, t.primary)
             pie_data = self.stats.todo_distribution(first, last)
-            self._dist_pie.set_data([{"name": r["name"], "value": int(r["total"])} for r in pie_data])
+            self._dist_pie.set_data([{"name": r["title"], "value": int(r["total"])} for r in pie_data])
 
         elif tab == TAB_CUSTOM:
             # 自定义日期范围
@@ -974,10 +1055,10 @@ class StatsPage(PageBase):
                 end = datetime.date.today()
             self._dist_date_label.setText(f"{start.strftime('%m/%d')} - {end.strftime('%m/%d')}")
             rows = self.stats.daily_range(start, end)
-            items = [{"label": _md(r["belong_date"]), "value": int(r["total"])} for r in rows]
+            items = [{"label": _md(r["belong_date"]), "value": int(r["total"]) // 60} for r in rows]
             self._dist_chart.set_data(items, t.primary)
             pie_data = self.stats.todo_distribution(start, end)
-            self._dist_pie.set_data([{"name": r["name"], "value": int(r["total"])} for r in pie_data])
+            self._dist_pie.set_data([{"name": r["title"], "value": int(r["total"])} for r in pie_data])
 
         # 更新 Tab 按钮样式（选中态 primary，未选中态 surface_variant）
         total = len(self._dist_tab_btns)
@@ -1035,7 +1116,9 @@ class StatsPage(PageBase):
         title_label.setText(f"{'起床' if ct == 0 else '睡眠'}打卡分布  {y}-{m:02d}")
         ym = f"{y}-{m:02d}"
         rows = self.checkin_dao.monthly_distribution(ym, ct)
-        items = [{"label": f"{r['hour']:02d}时", "value": int(r["cnt"])} for r in rows]
+        # 构建完整 24 小时分布，无数据的小时显示 0
+        hour_map = {int(r["hour"]): int(r["cnt"]) for r in rows}
+        items = [{"label": f"{h}时", "value": hour_map.get(h, 0)} for h in range(24)]
         chart.set_data(items, self._t.accent2)
 
     # ---------- 月度打断原因分布 ---------- #

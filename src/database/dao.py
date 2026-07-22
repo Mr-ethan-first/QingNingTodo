@@ -266,9 +266,13 @@ class StatsDAO(BaseDAO):
         return streak
 
     def todo_distribution(self, start_date, end_date=None, user_id=None):
-        """按待办统计专注时长分布（用于饼图）"""
+        """按待办统计专注时长分布（用于饼图）。
+
+        BUG 修复：原先 SELECT 别名为 ``name``，与方法签名文档中的 ``title``
+        不一致，现统一返回 ``title`` 键。
+        """
         uid = user_id or self._default_user_id()
-        sql = ("SELECT COALESCE(t.title,'未关联') AS name, "
+        sql = ("SELECT COALESCE(t.title,'未关联') AS title, "
                "COALESCE(SUM(f.actual_duration),0) AS total, COUNT(*) AS cnt "
                "FROM focus_record f LEFT JOIN todo t ON f.todo_id=t.id "
                "WHERE f.user_id=%s AND f.is_completed=1 AND f.belong_date>=%s ")
@@ -292,15 +296,32 @@ class StatsDAO(BaseDAO):
             (uid, year_month))
 
     def yearly_monthly(self, year: int, user_id=None):
-        """年度月度专注时长"""
+        """年度月度专注时长。
+
+        BUG 修复：原先仅返回有数据的月份，无数据年份返回空列表；
+        现始终返回 1-12 月共 12 条记录，无数据月份 total/cnt 为 0，
+        便于 UI 直接渲染而不需要额外补零。
+        """
         uid = user_id or self._default_user_id()
-        return self.db.query_all(
+        rows = self.db.query_all(
             "SELECT MONTH(f.belong_date) AS month, "
             "COALESCE(SUM(f.actual_duration),0) AS total, COUNT(*) AS cnt "
             "FROM focus_record f WHERE f.user_id=%s AND f.is_completed=1 "
             "AND YEAR(f.belong_date)=%s "
             "GROUP BY MONTH(f.belong_date) ORDER BY month",
             (uid, year))
+        month_map = {int(r["month"]): r for r in rows}
+        result = []
+        for m in range(1, 13):
+            if m in month_map:
+                result.append({
+                    "month": m,
+                    "total": int(month_map[m]["total"]),
+                    "cnt": int(month_map[m]["cnt"]),
+                })
+            else:
+                result.append({"month": m, "total": 0, "cnt": 0})
+        return result
 
     def hourly_range(self, date, user_id=None):
         """指定日期按小时统计专注时长（0-23）"""
@@ -322,14 +343,18 @@ class StatsDAO(BaseDAO):
             (uid, start_date, end_date))
 
     def today_abandoned(self, user_id=None, today=None):
-        """今日放弃次数"""
+        """今日放弃次数。
+
+        BUG 修复：原先返回 int，与 total_focus/today_focus 的 dict 风格不一致，
+        现统一返回 ``{"count": N}`` 字典。
+        """
         uid = user_id or self._default_user_id()
         today = today or datetime.date.today()
         row = self.db.query_one(
             "SELECT COUNT(*) AS cnt FROM focus_record "
             "WHERE user_id=%s AND is_completed=0 AND belong_date=%s",
             (uid, today))
-        return int(row["cnt"]) if row else 0
+        return {"count": int(row["cnt"]) if row else 0}
 
     def avg_daily_duration(self, user_id=None):
         """日均专注时长（秒）"""
