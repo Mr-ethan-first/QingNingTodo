@@ -1018,22 +1018,24 @@ class FocusPage(PageBase):
             pass
 
     def _play_default_chime(self):
-        """播放内置完成提示音（assets/sounds/ding.wav，短促「叮」一声）。"""
+        """播放内置完成提示音（assets/sounds/facebook_notify.wav）。
+
+        该音频缺失时降级为系统蜂鸣（兜底）。
+        """
         try:
             import winsound
-            path = self._resolve_sound_path(
-                "assets/sounds/ding.wav")
+            path = self._resolve_sound_path("assets/sounds/facebook_notify.wav")
             if path and os.path.isfile(path):
                 # 一次性播放（不带 SND_LOOP），播放完自动停止
                 winsound.PlaySound(
                     path,
                     winsound.SND_FILENAME | winsound.SND_ASYNC,
                 )
-            else:
-                # 资源缺失时降级为系统蜂鸣（兜底）
-                from PyQt6.QtWidgets import QApplication
-                if QApplication.instance() is not None:
-                    QApplication.beep()
+                return
+            # 资源缺失时降级为系统蜂鸣（兜底）
+            from PyQt6.QtWidgets import QApplication
+            if QApplication.instance() is not None:
+                QApplication.beep()
         except Exception:
             pass
 
