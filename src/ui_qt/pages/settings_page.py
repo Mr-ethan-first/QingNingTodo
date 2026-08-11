@@ -11,7 +11,7 @@ import os
 import sys
 
 from PyQt6.QtCore import Qt, QTime
-from PyQt6.QtGui import QColor
+from PyQt6.QtGui import QColor, QPixmap
 from PyQt6.QtWidgets import (
     QCheckBox, QColorDialog, QFileDialog, QFrame, QHBoxLayout,
     QInputDialog, QLabel, QListWidget, QListWidgetItem, QMessageBox,
@@ -491,6 +491,85 @@ class SettingsPage(PageBase):
         self._sep(lay)
 
         lay.addWidget(primary_button("帮助文档", on_click=self._open_help))
+
+        self._sep(lay)
+
+        # 联系方式：微信 / QQ（新增区块，不影响上方布局）
+        contact_title = QLabel("联系方式")
+        contact_title.setStyleSheet(
+            f"font-size:15px; font-weight:700; color:{t_.text};"
+        )
+        contact_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(contact_title)
+
+        contact_row = QHBoxLayout()
+        contact_row.setSpacing(12)
+        wechat_card = self._build_contact_card(
+            "微信", "ddyyll66666", "assets/qrcodes/微信二维码.jpg"
+        )
+        qq_card = self._build_contact_card(
+            "QQ", "1461613752", "assets/qrcodes/QQ二维码.jpg"
+        )
+        contact_row.addWidget(wechat_card, 1)
+        contact_row.addWidget(qq_card, 1)
+        lay.addLayout(contact_row)
+
+    def _build_contact_card(self, platform: str, account: str, rel_path: str):
+        """构建单个联系方式卡片（平台名 + 账号 + 二维码）。"""
+        t_ = self._t
+        c = card()
+        lay = QVBoxLayout(c)
+        lay.setSpacing(8)
+        lay.setContentsMargins(12, 12, 12, 12)
+
+        title = QLabel(f"{platform}号")
+        title.setStyleSheet(
+            f"font-size:13px; font-weight:600; color:{t_.text};"
+        )
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lay.addWidget(title)
+
+        account_lbl = QLabel(account)
+        account_lbl.setStyleSheet(
+            f"font-size:14px; color:{t_.primary}; font-weight:600;"
+        )
+        account_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        account_lbl.setTextInteractionFlags(
+            Qt.TextInteractionFlag.TextSelectableByMouse
+        )
+        lay.addWidget(account_lbl)
+
+        qr_lbl = QLabel()
+        qr_lbl.setFixedSize(120, 120)
+        qr_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        qr_lbl.setStyleSheet(
+            f"border:1px solid {t_.border}; border-radius:8px; "
+            f"background:{t_.surface};"
+        )
+        qr_path = self._resolve_asset_path(rel_path)
+        if qr_path and os.path.isfile(qr_path):
+            pix = QPixmap(qr_path)
+            if not pix.isNull():
+                scaled = pix.scaled(
+                    112, 112,
+                    Qt.AspectRatioMode.KeepAspectRatio,
+                    Qt.TransformationMode.SmoothTransformation,
+                )
+                qr_lbl.setPixmap(scaled)
+        lay.addWidget(qr_lbl, alignment=Qt.AlignmentFlag.AlignHCenter)
+
+        return c
+
+    def _resolve_asset_path(self, rel_path: str):
+        """解析资源相对路径，优先打包后的 _MEIPASS，其次项目根目录。"""
+        base = getattr(sys, "_MEIPASS", None)
+        if base:
+            p = os.path.join(base, rel_path)
+            if os.path.isfile(p):
+                return p
+        here = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(here)))
+        return os.path.join(project_root, rel_path)
 
     # ================================================================
     #  刷新（从 DAO 加载最新数据）

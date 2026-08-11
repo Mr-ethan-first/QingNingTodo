@@ -68,11 +68,27 @@ services:
     networks:
       - dev-net
 
+  redis:
+    image: redis:8.8
+    container_name: local-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    volumes:
+      - redis-data:/data
+    networks:
+      - dev-net
+
 volumes:
   es-data:
   mysql-data:
   rabbitmq-data:
   mongo-data:
+  redis-data:
 
 networks:
   dev-net:

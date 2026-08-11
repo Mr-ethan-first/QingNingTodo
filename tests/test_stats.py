@@ -432,18 +432,18 @@ def test_daily_range_week(stats_dao, focus_dao, todo_dao):
     tid = todo_dao.create("学习Python", timer_type=0, duration=1500)
     today = datetime.date.today()
     monday = today - datetime.timedelta(days=today.weekday())  # 本周一
+    wednesday = monday + datetime.timedelta(days=2)            # 本周三（与周一必不同）
     sunday = monday + datetime.timedelta(days=6)               # 本周日
 
-    # 在周一和今天各创建一条记录
+    # 在周一和周三（保证不同天且都在本周范围）各创建一条记录
     _create_focus(focus_dao, tid, monday, 10, 1500, completed=1)
-    _create_focus(focus_dao, tid, today, 14, 1800, completed=1)
+    _create_focus(focus_dao, tid, wednesday, 14, 1800, completed=1)
 
     result = stats_dao.daily_range(monday, sunday)
-    # 至少有周一和今天的数据（如果今天是周一则只有 1 条）
-    assert len(result) >= 1
+    assert len(result) >= 2
     totals = {_norm_date(r["belong_date"]): int(r["total"]) for r in result}
     assert totals.get(monday) == 1500
-    assert totals.get(today) == 1800
+    assert totals.get(wednesday) == 1800
 
 
 def test_daily_range_month(stats_dao, focus_dao, todo_dao):

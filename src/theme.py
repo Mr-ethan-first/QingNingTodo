@@ -437,15 +437,14 @@ def _build_calendar_qss() -> str:
         border-radius: {t.radius_md}px;
         font-family: {t.font_b};
         font-size: 13px;
-        min-width: 320px;
     }}
     QCalendarWidget QToolButton {{
         background: transparent;
         color: {t.text};
         border: none;
         border-radius: {t.radius_sm}px;
-        padding: 6px 12px;
-        font-size: 14px;
+        padding: 4px 6px;
+        font-size: 13px;
         font-weight: 600;
     }}
     QCalendarWidget QToolButton:hover {{
@@ -458,28 +457,27 @@ def _build_calendar_qss() -> str:
     }}
     QCalendarWidget QToolButton#qt_calendar_prevmonth,
     QCalendarWidget QToolButton#qt_calendar_nextmonth {{
-        min-width: 36px; max-width: 36px;
-        min-height: 36px; max-height: 36px;
-        border-radius: 18px;
-        font-size: 18px;
+        min-width: 28px; max-width: 28px;
+        min-height: 28px; max-height: 28px;
+        border-radius: 14px;
+        font-size: 14px;
     }}
     QCalendarWidget QWidget#qt_calendar_navigationbar {{
         background: {t.surface_variant};
         border-bottom: 1px solid {t.border};
         border-top-left-radius: {t.radius_md}px;
         border-top-right-radius: {t.radius_md}px;
-        min-height: 44px;
+        min-height: 36px;
     }}
     QCalendarWidget QWidget#qt_calendar_monthbutton,
     QCalendarWidget QWidget#qt_calendar_yearbutton {{
         background: transparent;
         color: {t.text};
         font-family: {t.font_d};
-        font-size: 16px;
+        font-size: 14px;
         font-weight: 700;
-        padding: 4px 12px;
+        padding: 4px 6px;
         border-radius: {t.radius_sm}px;
-        min-width: 70px;
     }}
     QCalendarWidget QWidget#qt_calendar_monthbutton:hover,
     QCalendarWidget QWidget#qt_calendar_yearbutton:hover {{
@@ -507,7 +505,7 @@ def _build_calendar_qss() -> str:
         border: none;
         border-radius: {t.radius_sm}px;
         padding: 0;
-        margin: 2px;
+        margin: 1px;
     }}
     QCalendarWidget QTableView::item:hover {{
         background: {hex_rgba(t.primary, 0.12)};
@@ -523,12 +521,41 @@ def _build_calendar_qss() -> str:
         background: transparent;
         color: {t.text_muted};
         border: none;
-        padding: 8px 0;
+        padding: 4px 0;
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }}
+    /* 点击年份后出现的年份输入框：同高、同字号，与静默年份按钮同水平线 */
+    QCalendarWidget QSpinBox#qt_calendar_yearedit {{
+        min-height: 23px; max-height: 23px;
+        border: 1px solid {t.border};
+        border-radius: {t.radius_sm}px;
+        background: {t.surface}; color: {t.text};
+        font-family: {t.font_b}; font-size: 13px; font-weight: 600;
+        padding: 0 4px; margin: 0;
+    }}
+    QCalendarWidget QSpinBox#qt_calendar_yearedit::up-button {{
+        subcontrol-origin: border; subcontrol-position: top right;
+        width: 10px; height: 11px;
+    }}
+    QCalendarWidget QSpinBox#qt_calendar_yearedit::down-button {{
+        subcontrol-origin: border; subcontrol-position: bottom right;
+        width: 10px; height: 11px;
+    }}
+    QCalendarWidget QSpinBox#qt_calendar_yearedit::up-arrow {{ width: 6px; height: 6px; }}
+    QCalendarWidget QSpinBox#qt_calendar_yearedit::down-arrow {{ width: 6px; height: 6px; }}
+    QCalendarWidget QMenu {{
+        background: {t.surface}; color: {t.text};
+        border: 1px solid {t.border};
+        border-radius: {t.radius_sm}px; padding: 4px;
+    }}
+    QCalendarWidget QMenu::item {{
+        background: transparent; color: {t.text};
+        padding: 4px 18px; border-radius: {t.radius_sm}px; font-size: 13px;
+    }}
+    QCalendarWidget QMenu::item:selected {{ background: {nav_bg}; color: {t.primary}; }}
     """
 
 

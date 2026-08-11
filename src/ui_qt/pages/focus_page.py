@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (
 )
 
 from src.audio_player import get_player
-from src.theme import get_current_theme, _on_color, hex_rgba
+from src.theme import get_current_theme, hex_rgba
 from src.ui_qt.icons import icon
 from src.ui_qt.pages import PageBase
 from src.ui_qt.toast import show_toast
@@ -132,7 +132,11 @@ class FocusPage(PageBase):
         self._bg_label.hide()
         # _inner 透明：背景层在 _inner 之下，透明后图片（及玻璃态卡片/横幅）
         # 才能透出；无背景时退化为视口默认底色，外观不变。
-        self._inner.setStyleSheet("background:transparent;")
+        # 使用 objectName 选择器限定仅作用于 _inner 自身，避免裸属性
+        # 被 Qt 当作 QWidget 类型选择器级联到所有子控件，
+        # 从而覆盖全局 QSS 中 #heroBanner 的渐变背景。
+        self._inner.setObjectName("focusInner")
+        self._inner.setStyleSheet("#focusInner{background:transparent;}")
         # 专注页顶部横幅：标题固定，副标题使用随机诗文（每次进入页面随机）
         self._hero_subtitle = self._random_motto()
         self._hero = hero_banner("专注当下", self._hero_subtitle)
@@ -345,13 +349,25 @@ class FocusPage(PageBase):
             return
         t = get_current_theme()
         self._bg_pixmap = None
+        # hero 渐变背景：始终与待办清单保持一致（不受背景图影响）
+        if t.name == "dark":
+            hero_grad = (
+                f"qlineargradient(x1:0,y1:0,x2:1,y2:1,"
+                f"stop:0 {hex_rgba(t.primary, 0.85)},"
+                f"stop:0.5 {hex_rgba(t.secondary, 0.70)},"
+                f"stop:1 {hex_rgba(t.accent, 0.85)})")
+        else:
+            hero_grad = (
+                f"qlineargradient(x1:0,y1:0,x2:1,y2:1,"
+                f"stop:0 {t.primary}, stop:0.5 {t.primary_hover},"
+                f"stop:1 {t.accent})")
         # 计算 hero 文字颜色：保证在任意背景上清晰可读
         if path and os.path.isfile(path):
             # 玻璃态：深色主题用亮字，浅色主题用深色字（避免白底白字看不清）
             title_color = "#FFFFFF" if t.name == "dark" else "#1E252B"
         else:
-            # 主色渐变背景：暗色主题强制白色，亮色主题按主色亮度自适应
-            title_color = "#FFFFFF" if t.name == "dark" else _on_color(t.primary)
+            # 主色渐变背景：与待办清单一致，使用 on_primary（白色）
+            title_color = "#FFFFFF" if t.name == "dark" else t.on_primary
         self._set_hero_text_color(title_color)
 
         if path and os.path.isfile(path):
@@ -367,15 +383,16 @@ class FocusPage(PageBase):
                 self._bg_mask.setAutoFillBackground(True)
                 self._bg_mask.setPalette(pal)
                 self._bg_mask.setVisible(True)
-                # 玻璃态：半透明，露出背景图
+                # 玻璃态：半透明卡片，露出背景图
                 glass = ("rgba(255,255,255,0.16)" if t.name == "dark"
                          else "rgba(255,255,255,0.55)")
                 self._focus_card.setStyleSheet(
                     f"#card{{background:{glass}; border:1px solid {t.border};"
                     f"border-radius:{t.radius_lg}px;}}")
+                # hero 横幅始终使用渐变背景（与待办清单一致）
                 self._hero.setStyleSheet(
-                    f"#heroBanner{{background:{glass}; border:1px solid {t.border};"
-                    f"border-radius:{t.radius_lg}px;}}")
+                    f"#heroBanner{{ background:{hero_grad};"
+                    f" border:none; border-radius:{t.radius_lg}px; }}")
                 if hasattr(self, "_noise_container"):
                     self._noise_container.setStyleSheet(
                         f"#panel{{background:{glass}; border:1px solid {t.border};"
@@ -390,18 +407,6 @@ class FocusPage(PageBase):
         self._focus_card.setStyleSheet(
             f"#card{{background:{t.surface}; border:1px solid {t.border};"
             f"border-radius:{t.radius_lg}px;}}")
-        if t.name == "dark":
-            # 暗色主题：多段渐变（primary → secondary → accent），与待办清单一致
-            hero_grad = (
-                f"qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-                f"stop:0 {hex_rgba(t.primary, 0.85)},"
-                f"stop:0.5 {hex_rgba(t.secondary, 0.70)},"
-                f"stop:1 {hex_rgba(t.accent, 0.85)})")
-        else:
-            hero_grad = (
-                f"qlineargradient(x1:0,y1:0,x2:1,y2:1,"
-                f"stop:0 {t.primary}, stop:0.5 {t.primary_hover},"
-                f"stop:1 {t.accent})")
         self._hero.setStyleSheet(
             f"#heroBanner{{ background:{hero_grad};"
             f" border:none; border-radius:{t.radius_lg}px; }}")
@@ -997,15 +1002,58 @@ class FocusPage(PageBase):
     # ---------- 专注完成后的流程 ----------
 
     def _play_complete_sound(self):
-        """计时完成后按设置播放提示音（focus_complete_sound=none 时不播放）。"""
+        """计时完成后按设置播放提示音。
+        - 'none'：不播放
+        - 'default'（系统默认）：播放内置提示音 WAV。
+          注：原先使用 QApplication.beep()，而 Windows 上 beep 依赖系统
+          『默认蜂鸣』声音方案，常被设为『无』导致静音；改为播放内置
+          音频文件，确保任何机器都能听到完成提示。
+        """
         try:
             val = self._get_setting("focus_complete_sound", "default")
-            if val and val != "none":
+            if not val or val == "none":
+                return
+            self._play_default_chime()
+        except Exception:
+            pass
+
+    def _play_default_chime(self):
+        """播放内置完成提示音（assets/sounds/ding.wav，短促「叮」一声）。"""
+        try:
+            import winsound
+            path = self._resolve_sound_path(
+                "assets/sounds/ding.wav")
+            if path and os.path.isfile(path):
+                # 一次性播放（不带 SND_LOOP），播放完自动停止
+                winsound.PlaySound(
+                    path,
+                    winsound.SND_FILENAME | winsound.SND_ASYNC,
+                )
+            else:
+                # 资源缺失时降级为系统蜂鸣（兜底）
                 from PyQt6.QtWidgets import QApplication
                 if QApplication.instance() is not None:
                     QApplication.beep()
         except Exception:
             pass
+
+    def _resolve_sound_path(self, path: str) -> str:
+        """解析音频资源路径，兼容绝对路径 / 项目相对路径 / 打包后 _MEIPASS。"""
+        if not path:
+            return ""
+        path = path.strip()
+        if os.path.isabs(path) and os.path.isfile(path):
+            return path
+        base = getattr(sys, '_MEIPASS', None)
+        project_root = base if base else os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__)))))
+        abs_path = os.path.join(project_root, path)
+        if os.path.isfile(abs_path):
+            return abs_path
+        if os.path.isfile(path):
+            return path
+        return ""
 
     def _after_focus_completed(self):
         """专注完成后的流程：休息前询问 -> 进入休息 / 结束。"""

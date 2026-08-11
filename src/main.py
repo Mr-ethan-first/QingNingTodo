@@ -180,6 +180,13 @@ def _init_database(app_cfg: AppConfig):
 
 
 def main():
+    # 允许通过 --force / --new-instance / --no-single-instance 绕开单实例限制
+    # （用于开发调试、或上一个实例异常退出但仍占用互斥锁导致无法启动的场景）
+    _FORCE_NEW = any(
+        a in ("--force", "--new-instance", "--no-single-instance")
+        for a in sys.argv[1:]
+    )
+
     # Windows 任务栏图标：设置 AppUserModelID，使任务栏显示独立图标而非 Python 默认图标
     try:
         import ctypes
@@ -188,10 +195,18 @@ def main():
         pass
 
     # 单实例检测（命名互斥锁）
-    if not _check_single_instance():
+    if not _FORCE_NEW and not _check_single_instance():
         # 已有实例运行：将已有窗口恢复并置前，然后立即退出
-        _bring_existing_window_to_front()
+        brought = _bring_existing_window_to_front()
         _log_debug("Second instance: brought window to front, exiting now")
+        # 给出明确提示，避免“静默退出、看起来像启动失败”的困惑
+        sys.stderr.write(
+            "[青柠待办] 检测到已有实例正在运行（单实例互斥锁被占用），已退出。\n"
+            "  · 若上一个窗口已关闭但仍无法启动，请先在任务管理器结束“青柠待办”/python 进程。\n"
+            "  · 如需立即强制启动一个新实例，可加参数运行：\n"
+            "      python -m src.main --force\n"
+        )
+        _log_debug(f"Second instance: brought={brought}")
         # 直接退出，不创建 QApplication / 不显示 toast
         # （创建 QApplication 在 onefile 模式下很慢，且 toast 会阻止进程退出）
         return 0

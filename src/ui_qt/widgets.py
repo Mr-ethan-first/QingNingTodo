@@ -11,13 +11,14 @@ v2 升级：
 - 徽章：渐变底色
 - 分区标题：圆角图标块 + 渐变底
 """
-from PyQt6.QtCore import Qt, QSize, QObject, QPropertyAnimation, QEasingCurve, pyqtProperty, pyqtSignal, QEvent, QDate, QRectF
+import re
+from PyQt6.QtCore import Qt, QSize, QObject, QPropertyAnimation, QEasingCurve, pyqtProperty, pyqtSignal, QEvent, QDate, QRectF, QTimer
 from PyQt6.QtGui import QColor, QFont, QPainter, QPalette, QPen, QPixmap, QIcon, QPainterPath
 from PyQt6.QtWidgets import (
     QApplication, QCalendarWidget, QComboBox, QDateEdit, QFrame,
     QGraphicsDropShadowEffect, QHBoxLayout, QLabel, QLineEdit, QListView,
     QListWidget, QListWidgetItem, QPushButton, QSlider, QStyle, QVBoxLayout,
-    QWidget,
+    QWidget, QToolButton, QMenu, QSpinBox,
 )
 from PyQt6 import sip
 
@@ -1100,13 +1101,23 @@ class CalendarDateEdit(QWidget):
             QCalendarWidget.VerticalHeaderFormat.NoVerticalHeader)
         self._cal_popup.setGridVisible(False)
         self._cal_popup.setSelectedDate(self._date)
-        self._cal_popup.setMinimumSize(300, 260)
+        # 宽度与主框保持一致：左边缘对齐控件，宽 = 控件宽度
+        popup_w = max(self.width(), 180)
+        self._cal_popup.setFixedWidth(popup_w)
+        self._cal_popup.setMinimumHeight(240)
         # 主题色 QSS
         self._cal_popup.setStyleSheet(self._calendar_qss(t))
         self._cal_popup.selectionChanged.connect(self._on_cal_selected)
-        # 定位到输入框下方
-        pos = self.mapToGlobal(self._line.rect().bottomLeft())
-        self._cal_popup.move(pos.x() - 20, pos.y() + 4)
+        # 年份下拉：点击年份后裁剪为「当前年 ±3」，其余年份用编辑框输入
+        _yb = self._cal_popup.findChild(QToolButton, "qt_calendar_yearbutton")
+        if _yb is not None:
+            _popup_ref = self._cal_popup
+            _yb.clicked.connect(
+                lambda _=False, p=_popup_ref:
+                QTimer.singleShot(60, lambda: self._trim_year_menu(p)))
+        # 定位到主框正下方（左边缘对齐）
+        pos = self.mapToGlobal(self.rect().bottomLeft())
+        self._cal_popup.move(pos.x(), pos.y() + 4)
         self._cal_popup.show()
         self._cal_popup.raise_()
         self._cal_popup.activateWindow()
@@ -1115,6 +1126,78 @@ class CalendarDateEdit(QWidget):
         new_date = self._cal_popup.selectedDate()
         self.setDate(new_date)
         self._cal_popup.hide()
+
+    def _trim_year_menu(self, popup):
+        """点击「年份」后，把年份下拉菜单裁剪到「当前年 ±3」。
+
+        其余年份（远超 ±3）不进列表，靠年份编辑框（QSpinBox）直接输入解决。
+        非数字项（如翻年箭头）原样保留，月份菜单等不受影响。
+        """
+        try:
+            cur = popup.yearShown()
+            lo, hi = cur - 3, cur + 3
+            menus = []
+
+            def _collect(w):
+                for ch in w.children():
+                    if isinstance(ch, QMenu):
+                        menus.append(ch)
+                    _collect(ch)
+
+            _collect(popup)
+            for w in QApplication.allWidgets():
+                if isinstance(w, QMenu) and w.isVisible() and w not in menus:
+                    menus.append(w)
+            seen = set()
+            for m in menus:
+                if m in seen:
+                    continue
+                seen.add(m)
+                for a in list(m.actions()):
+                    txt = (a.text() or "").strip()
+                    if not txt:
+                        continue
+                    try:
+                        y = int(txt)
+                    except ValueError:
+                        continue  # 保留非年份项（翻年箭头等）
+                    if not (lo <= y <= hi):
+                        m.removeAction(a)
+        except Exception:
+            pass
+        # 年份编辑框：宽度 1.3× 自然半宽（幂等，避免二次点击越缩越短）+ 文字与月份静默文字同水平线
+        try:
+            _ye = popup.findChild(QSpinBox, "qt_calendar_yearedit")
+            _yb = popup.findChild(QToolButton, "qt_calendar_yearbutton")
+            if _ye is not None and _yb is not None:
+                # ① 宽度：自然宽度只在「首次」测量并缓存到控件属性上，
+                #    后续点击读到的是已缩小的宽度——若直接用会越缩越短（二次点击 bug）。
+                #    用缓存的自然宽度算 1.3×(1/2)，多次点击结果一致。
+                _nat = _ye.property("__year_nat_w")
+                if not _nat:
+                    _nat = _ye.width()           # 首次：自然展开宽度
+                    _ye.setProperty("__year_nat_w", _nat)
+                _half = max(40, int(_nat) // 2)
+                _new_w = max(46, int(_half * 1.3))
+                _ye.setFixedWidth(_new_w)
+                # ② 垂直居中到导航栏（月份静默文字也在导航栏内垂直居中），
+                #    高度取年份按钮高度，保证年份输入框与月份文字同一水平线
+                _edit_h = _yb.height()
+                _nav = popup.findChild(QWidget, "qt_calendar_navigationbar")
+                if _nav is not None:
+                    _edit_y = _nav.y() + (_nav.height() - _edit_h) // 2
+                else:
+                    _edit_y = _yb.y()
+                _ye.setGeometry(_yb.x(), _edit_y, _new_w, _edit_h)
+                # ③ 文字基线对齐：内部 QLineEdit 垂直居中 + 零内边距，并复制年份按钮字体
+                #    （QSpinBox 默认内部文字会被边框 inset，这是「与月份文字不在一行」的根因）
+                _le = _ye.lineEdit()
+                if _le is not None:
+                    _le.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+                    _le.setTextMargins(0, 0, 0, 0)
+                _ye.setFont(_yb.font())
+        except Exception:
+            pass
 
     @staticmethod
     def _calendar_qss(t) -> str:
@@ -1138,24 +1221,24 @@ class CalendarDateEdit(QWidget):
         }}
         QCalendarWidget QToolButton {{
             background: transparent; color: {t.text}; border: none;
-            border-radius: {t.radius_sm}px; padding: 6px 12px;
-            font-size: 14px; font-weight: 600;
+            border-radius: {t.radius_sm}px; padding: 4px 6px;
+            font-size: 13px; font-weight: 600;
         }}
         QCalendarWidget QToolButton:hover {{
             background: {nav_bg}; color: {t.primary};
         }}
         QCalendarWidget QToolButton#qt_calendar_prevmonth,
         QCalendarWidget QToolButton#qt_calendar_nextmonth {{
-            min-width: 36px; max-width: 36px;
-            min-height: 36px; max-height: 36px;
-            border-radius: 18px; font-size: 18px;
+            min-width: 28px; max-width: 28px;
+            min-height: 28px; max-height: 28px;
+            border-radius: 14px; font-size: 14px;
         }}
         QCalendarWidget QWidget#qt_calendar_navigationbar {{
             background: {t.surface_variant};
             border-bottom: 1px solid {t.border};
             border-top-left-radius: {t.radius_md}px;
             border-top-right-radius: {t.radius_md}px;
-            min-height: 44px;
+            min-height: 36px;
         }}
         QCalendarWidget QTableView {{
             background: transparent;
@@ -1167,7 +1250,7 @@ class CalendarDateEdit(QWidget):
         QCalendarWidget QTableView::item {{
             background: transparent; color: {t.text};
             border: none; border-radius: {t.radius_sm}px;
-            padding: 0; margin: 2px;
+            padding: 0; margin: 1px;
         }}
         QCalendarWidget QTableView::item:hover {{
             background: {hex_rgba(t.primary, 0.12)};
@@ -1179,8 +1262,45 @@ class CalendarDateEdit(QWidget):
         }}
         QCalendarWidget QHeaderView::section {{
             background: transparent; color: {t.text_muted};
-            border: none; padding: 8px 0;
+            border: none; padding: 4px 0;
             font-size: 11px; font-weight: 700;
+        }}
+        /* 点击年份后出现的年份输入框：与静默年份按钮同高、同字号，文字同一水平线 */
+        QCalendarWidget QSpinBox#qt_calendar_yearedit {{
+            min-height: 23px; max-height: 23px;
+            border: 1px solid {t.border};
+            border-radius: {t.radius_sm}px;
+            background: {t.surface}; color: {t.text};
+            font-family: {t.font_b}; font-size: 13px; font-weight: 600;
+            padding: 0 4px; margin: 0;
+        }}
+        QCalendarWidget QSpinBox#qt_calendar_yearedit::up-button {{
+            subcontrol-origin: border; subcontrol-position: top right;
+            width: 10px; height: 11px;
+        }}
+        QCalendarWidget QSpinBox#qt_calendar_yearedit::down-button {{
+            subcontrol-origin: border; subcontrol-position: bottom right;
+            width: 10px; height: 11px;
+        }}
+        QCalendarWidget QSpinBox#qt_calendar_yearedit::up-arrow {{
+            width: 6px; height: 6px;
+        }}
+        QCalendarWidget QSpinBox#qt_calendar_yearedit::down-arrow {{
+            width: 6px; height: 6px;
+        }}
+        /* 年份下拉菜单：主题化 + 紧凑 */
+        QCalendarWidget QMenu {{
+            background: {t.surface}; color: {t.text};
+            border: 1px solid {t.border};
+            border-radius: {t.radius_sm}px; padding: 4px;
+        }}
+        QCalendarWidget QMenu::item {{
+            background: transparent; color: {t.text};
+            padding: 4px 18px; border-radius: {t.radius_sm}px;
+            font-size: 13px;
+        }}
+        QCalendarWidget QMenu::item:selected {{
+            background: {nav_bg}; color: {t.primary};
         }}
         """
 
@@ -1312,11 +1432,12 @@ class PlusMinusSpinBox(QWidget):
         """)
         self._btn_minus.clicked.connect(self._on_minus)
 
-        # 数值显示（中间）
+        # 数值显示（中间）：可手动编辑，editingFinished 时解析回写
         self._line = QLineEdit()
-        self._line.setReadOnly(True)
+        self._line.setReadOnly(False)
         self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._line.setFixedHeight(32)
+        self._line.editingFinished.connect(self._on_edit)
         self._line.setStyleSheet(f"""
             QLineEdit {{
                 background: {t.surface};
@@ -1393,6 +1514,21 @@ class PlusMinusSpinBox(QWidget):
             self._value = new_val
             self._update_display()
             self.valueChanged.emit(self._value)
+
+    def _on_edit(self):
+        """手动输入：解析数字（支持负号，忽略单位后缀），越界自动夹紧。"""
+        raw = self._line.text()
+        cleaned = re.sub(r"[^0-9\-]", "", raw)
+        try:
+            v = int(cleaned)
+        except ValueError:
+            self._update_display()  # 非法输入：还原
+            return
+        v = self._clamp(v)
+        if v != self._value:
+            self._value = v
+            self.valueChanged.emit(self._value)
+        self._update_display()
 
     def value(self):
         return self._value
@@ -1520,11 +1656,12 @@ class PlusMinusTimeEdit(QWidget):
         """)
         self._btn_minus.clicked.connect(self._on_minus)
 
-        # 时间显示（中间）
+        # 时间显示（中间）：可手动编辑，editingFinished 时解析回写
         self._line = QLineEdit()
-        self._line.setReadOnly(True)
+        self._line.setReadOnly(False)
         self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._line.setFixedHeight(32)
+        self._line.editingFinished.connect(self._on_edit)
         self._line.setStyleSheet(f"""
             QLineEdit {{
                 background: {t.surface};
@@ -1595,6 +1732,22 @@ class PlusMinusTimeEdit(QWidget):
         total_min = self._time.hour() * 60 + self._time.minute()
         total_min = (total_min - self._step) % (24 * 60)
         self._time = QTime(total_min // 60, total_min % 60)
+        self._update_display()
+        self.timeChanged.emit(self._time)
+
+    def _on_edit(self):
+        """手动输入：解析 HH:mm（兼容中文冒号），非法则还原。"""
+        from PyQt6.QtCore import QTime
+        txt = self._line.text().strip()
+        m = re.match(r"^(\d{1,2})[:：](\d{1,2})$", txt)
+        if not m:
+            self._update_display()
+            return
+        h, mi = int(m.group(1)), int(m.group(2))
+        if h > 23 or mi > 59:
+            self._update_display()
+            return
+        self._time = QTime(h, mi)
         self._update_display()
         self.timeChanged.emit(self._time)
 
