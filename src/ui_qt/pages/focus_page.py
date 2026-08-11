@@ -997,6 +997,11 @@ class FocusPage(PageBase):
             self._render(max(0, self.rest_remaining))
             if self.rest_remaining <= 0:
                 self._timer.stop()
+                # 休息计时结束同样给出声音提醒（与「专注/休息计时结束」设置一致）。
+                # 注意：只在真正倒计时归零时播放；_enter_rest() 中因
+                # rest_remaining<=0 直接跳过休息的路径不播（避免与专注
+                # 完成提示音重复）。
+                self._play_complete_sound()
                 self._on_rest_finished()
 
     # ---------- 专注完成后的流程 ----------
@@ -1020,19 +1025,34 @@ class FocusPage(PageBase):
     def _play_default_chime(self):
         """播放内置完成提示音（assets/sounds/facebook_notify.wav）。
 
-        该音频缺失时降级为系统蜂鸣（兜底）。
+        音频缺失或播放失败时降级为系统蜂鸣，确保「有声反馈」不会整体丢失。
+
+        说明：早期实现把所有异常静默 pass，一旦 PlaySound 失败（缺少音频
+        设备、WAV 非标准 PCM、驱动拒绝等）就表现为「完全没有提示音」且
+        无任何线索。现在改为失败即兜底蜂鸣，并把原因写到 stderr 便于排查。
         """
+        rel = "assets/sounds/facebook_notify.wav"
         try:
             import winsound
-            path = self._resolve_sound_path("assets/sounds/facebook_notify.wav")
+            path = self._resolve_sound_path(rel)
             if path and os.path.isfile(path):
-                # 一次性播放（不带 SND_LOOP），播放完自动停止
-                winsound.PlaySound(
-                    path,
-                    winsound.SND_FILENAME | winsound.SND_ASYNC,
-                )
-                return
-            # 资源缺失时降级为系统蜂鸣（兜底）
+                try:
+                    # 一次性播放（不带 SND_LOOP），播放完自动停止
+                    winsound.PlaySound(
+                        path,
+                        winsound.SND_FILENAME | winsound.SND_ASYNC,
+                    )
+                    return
+                except Exception as exc:  # PlaySound 失败 -> 落到蜂鸣兜底
+                    print(f"[提示音] PlaySound 失败: {exc!r} path={path}",
+                          file=sys.stderr)
+            else:
+                print(f"[提示音] 音频文件未找到: {rel}", file=sys.stderr)
+        except Exception as exc:
+            # winsound 不可用（非 Windows 平台等）
+            print(f"[提示音] winsound 不可用: {exc!r}", file=sys.stderr)
+        # 兜底：系统蜂鸣，保证至少有可感知的提示
+        try:
             from PyQt6.QtWidgets import QApplication
             if QApplication.instance() is not None:
                 QApplication.beep()
