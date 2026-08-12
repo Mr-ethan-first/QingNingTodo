@@ -136,10 +136,12 @@ class _TodoCard(QFrame):
         btn.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         btn.setAutoRaise(True)
         btn.setFixedSize(32, 32)  # 紧凑尺寸
-        # 隐藏QToolButton自带的下拉箭头，避免与三点图标重叠
+        # 有背景图时按钮本身也是白色系图标，悬浮底若用 surface 会和图标糊在一起，
+        # 改用半透明白/黑遮罩保证任何背景下都可见。
+        hover_bg = "rgba(255,255,255,0.22)" if has_bg else t.surface
         btn.setStyleSheet(
             f"QToolButton{{border:none; border-radius:6px; background:transparent;}}"
-            f"QToolButton:hover{{background:{t.surface};}}"
+            f"QToolButton:hover{{background:{hover_bg};}}"
             f"QToolButton::menu-indicator{{image:none; width:0px;}}")
         btn.setArrowType(Qt.ArrowType.NoArrow)
         menu = QMenu(btn)
