@@ -85,40 +85,19 @@ class TestSettingsDAO:
 # ===================== 默认设置验证 =====================
 
 class TestDefaultSettings:
-    """验证 schema.py 中 DEFAULT_SETTINGS 的 26 个默认设置项。"""
+    """验证 schema.py 中 DEFAULT_SETTINGS 的全部默认设置项均已正确写入数据库。"""
 
     def test_default_settings_exist(self, settings_dao):
-        """验证 26 个默认设置项都存在且值正确。"""
+        """验证所有默认设置项都存在且值正确。
+
+        期望值直接取自 DEFAULT_SETTINGS，避免硬编码随种子变更而过时
+        （此前曾因种子删减导致此测试失真）。
+        """
+        from src.database.schema import DEFAULT_SETTINGS
+        expected = {k: v for (k, v, _d) in DEFAULT_SETTINGS}
         all_settings = settings_dao.all()
-        expected = {
-            "default_focus_duration": "1500",
-            "default_break_duration": "300",
-            "focus_motto": "专注是成功的基石",
-            "focus_complete_sound": "default",
-            "auto_switch_stopwatch": "false",
-            "max_pause_minutes": "3",
-            "ask_before_break": "true",
-            "enable_focus_guard": "true",
-            "strict_mode": "false",
-            "fixed_sort": "false",
-            "no_strikethrough": "false",
-            "remember_list_expand": "true",
-            "enable_search": "true",
-            "midnight_shift": "false",
-            "habit_reminder_time": "20:00",
-            "trend_line_style": "curve",
-            "chart_unit": "minutes",
-            "monthly_display_range": "7",
-            "theme_color": "#8CC44A",
-            "app_background": "",
-            "background_music_path": "",
-            "bg_music_enabled": "false",
-            "auto_play_on_start": "false",
-            "auto_start": "false",
-            "shortcut_key": "Ctrl+Shift+A",
-            "confirm_on_close": "true",
-        }
-        assert len(expected) == 26
+        assert len(all_settings) >= len(expected), (
+            f"数据库设置项数量 {len(all_settings)} 少于种子 {len(expected)}")
         for key, value in expected.items():
             assert key in all_settings, f"缺少默认设置项: {key}"
             assert all_settings[key] == value, (

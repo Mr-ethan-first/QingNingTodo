@@ -1387,6 +1387,12 @@ class PlusMinusSpinBox(QWidget):
 
     valueChanged = pyqtSignal(int)
 
+    # 统一高度：与全局输入控件（theme.py 中 QLineEdit min-height:34px、
+    # #primary/#ghost 按钮 min-height:34px）保持一致，避免中间 QLineEdit 被
+    # 全局 QSS 的 min-height:34px 撑高、比两侧 32px 按钮更高而导致「高度溢出
+    # -=+ 边框」。三子控件都锁定到该高度，并在各自 QSS 内 override min/max-height。
+    H = 34
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._value = 0
@@ -1404,7 +1410,7 @@ class PlusMinusSpinBox(QWidget):
 
         # 减号按钮（左侧）
         self._btn_minus = QPushButton("\u2212")
-        self._btn_minus.setFixedSize(32, 32)
+        self._btn_minus.setFixedSize(self.H, self.H)
         self._btn_minus.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_minus.setStyleSheet(f"""
             QPushButton {{
@@ -1420,6 +1426,8 @@ class PlusMinusSpinBox(QWidget):
                 font-weight: 700;
                 padding: 0;
                 margin: 0;
+                min-height: {self.H}px;
+                max-height: {self.H}px;
             }}
             QPushButton:hover {{
                 background: {hex_rgba(t.primary, 0.10)};
@@ -1436,8 +1444,11 @@ class PlusMinusSpinBox(QWidget):
         self._line = QLineEdit()
         self._line.setReadOnly(False)
         self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._line.setFixedHeight(32)
+        self._line.setFixedHeight(self.H)
         self._line.editingFinished.connect(self._on_edit)
+        # 实时输入：每敲一键即同步 _value 并触发联动（进度条等），
+        # 避免「只在失焦时才提交」导致打字过程中滑块/表单不更新。
+        self._line.textEdited.connect(self._on_edit_live)
         self._line.setStyleSheet(f"""
             QLineEdit {{
                 background: {t.surface};
@@ -1453,12 +1464,14 @@ class PlusMinusSpinBox(QWidget):
                 font-size: 13px;
                 font-weight: 600;
                 font-family: {t.font_b};
+                min-height: {self.H}px;
+                max-height: {self.H}px;
             }}
         """)
 
         # 加号按钮（右侧）
         self._btn_plus = QPushButton("+")
-        self._btn_plus.setFixedSize(32, 32)
+        self._btn_plus.setFixedSize(self.H, self.H)
         self._btn_plus.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_plus.setStyleSheet(f"""
             QPushButton {{
@@ -1474,6 +1487,8 @@ class PlusMinusSpinBox(QWidget):
                 font-weight: 700;
                 padding: 0;
                 margin: 0;
+                min-height: {self.H}px;
+                max-height: {self.H}px;
             }}
             QPushButton:hover {{
                 background: {hex_rgba(t.primary, 0.10)};
@@ -1516,19 +1531,38 @@ class PlusMinusSpinBox(QWidget):
             self.valueChanged.emit(self._value)
 
     def _on_edit(self):
-        """手动输入：解析数字（支持负号，忽略单位后缀），越界自动夹紧。"""
+        """手动输入结束（失焦）：解析数字（支持负号，忽略单位后缀），越界自动夹紧并归一化显示。"""
         raw = self._line.text()
         cleaned = re.sub(r"[^0-9\-]", "", raw)
         try:
             v = int(cleaned)
         except ValueError:
-            self._update_display()  # 非法输入：还原
-            return
+            v = self._value  # 非法输入：回退到上次有效值
         v = self._clamp(v)
         if v != self._value:
             self._value = v
             self.valueChanged.emit(self._value)
         self._update_display()
+
+    def _on_edit_live(self):
+        """实时输入：每敲一键即解析并同步 _value、触发联动（进度条/表单），
+        但【不】改写输入框文本——保留用户正在输入的中间态（如单独一个负号、
+        多位数字），避免打断打字或误删已输入内容。归一化（夹紧、补单位）仍由
+        失焦时的 _on_edit 完成。
+
+        仅响应真实打字（textEdited），不会因程序化 setText 而触发，避免与
+        setValue/按钮点击造成的 _update_display 形成回环。
+        """
+        raw = self._line.text()
+        cleaned = re.sub(r"[^0-9\-]", "", raw)
+        try:
+            v = int(cleaned)
+        except ValueError:
+            return  # 中间态（如单独的 '-' 或空串）：暂不更新，等失焦归一化
+        v = self._clamp(v)
+        if v != self._value:
+            self._value = v
+            self.valueChanged.emit(self._value)
 
     def value(self):
         return self._value
@@ -1586,7 +1620,7 @@ class PlusMinusSpinBox(QWidget):
         pass
 
     def setFixedWidth(self, w):
-        self._line.setFixedWidth(max(0, w - 72))
+        self._line.setFixedWidth(max(0, w - 2 * self.H))
 
     def setFixedHeight(self, h):
         self._line.setFixedHeight(h)
@@ -1613,6 +1647,9 @@ class PlusMinusTimeEdit(QWidget):
 
     timeChanged = pyqtSignal(object)  # QTime
 
+    # 与 PlusMinusSpinBox 一致：统一高度，避免 QLineEdit 被全局 min-height 撑高
+    H = 34
+
     def __init__(self, parent=None):
         super().__init__(parent)
         from PyQt6.QtCore import QTime
@@ -1628,7 +1665,7 @@ class PlusMinusTimeEdit(QWidget):
 
         # 减号按钮（左侧）
         self._btn_minus = QPushButton("−")
-        self._btn_minus.setFixedSize(32, 32)
+        self._btn_minus.setFixedSize(self.H, self.H)
         self._btn_minus.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_minus.setStyleSheet(f"""
             QPushButton {{
@@ -1644,6 +1681,8 @@ class PlusMinusTimeEdit(QWidget):
                 font-weight: 700;
                 padding: 0;
                 margin: 0;
+                min-height: {self.H}px;
+                max-height: {self.H}px;
             }}
             QPushButton:hover {{
                 background: {hex_rgba(t.primary, 0.10)};
@@ -1660,7 +1699,7 @@ class PlusMinusTimeEdit(QWidget):
         self._line = QLineEdit()
         self._line.setReadOnly(False)
         self._line.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._line.setFixedHeight(32)
+        self._line.setFixedHeight(self.H)
         self._line.editingFinished.connect(self._on_edit)
         self._line.setStyleSheet(f"""
             QLineEdit {{
@@ -1677,12 +1716,14 @@ class PlusMinusTimeEdit(QWidget):
                 font-size: 13px;
                 font-weight: 600;
                 font-family: {t.font_b};
+                min-height: {self.H}px;
+                max-height: {self.H}px;
             }}
         """)
 
         # 加号按钮（右侧）
         self._btn_plus = QPushButton("+")
-        self._btn_plus.setFixedSize(32, 32)
+        self._btn_plus.setFixedSize(self.H, self.H)
         self._btn_plus.setCursor(Qt.CursorShape.PointingHandCursor)
         self._btn_plus.setStyleSheet(f"""
             QPushButton {{
@@ -1698,6 +1739,8 @@ class PlusMinusTimeEdit(QWidget):
                 font-weight: 700;
                 padding: 0;
                 margin: 0;
+                min-height: {self.H}px;
+                max-height: {self.H}px;
             }}
             QPushButton:hover {{
                 background: {hex_rgba(t.primary, 0.10)};
@@ -1764,7 +1807,7 @@ class PlusMinusTimeEdit(QWidget):
         self._btn_minus.setFixedHeight(h)
 
     def setFixedWidth(self, w):
-        self._line.setFixedWidth(max(0, w - 72))
+        self._line.setFixedWidth(max(0, w - 2 * self.H))
 
     def setDisplayFormat(self, fmt):
         pass  # 兼容 QTimeEdit API

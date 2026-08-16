@@ -386,18 +386,40 @@ class MainWindow(QMainWindow):
             pass
         self._hotkey = GlobalHotkey(combo, parent=self)
         self._hotkey.activated.connect(self._on_hotkey)
-        self._hotkey.start()
+        ok = self._hotkey.start()
+        if not ok:
+            reason = getattr(self._hotkey, "_last_error", "未知原因")
+            self.state.hotkey_last_error = reason
+            # 启动阶段托盘可能尚未就绪，仅记录日志，避免干扰用户
+            print(f"[全局快捷键] 注册失败：{combo} -> {reason}")
         # 供设置页在修改快捷键后重新注册
         self.state.on_shortcut_change = self._on_shortcut_change
 
-    def _on_shortcut_change(self, combo: str):
+    def _on_shortcut_change(self, combo: str) -> bool:
         try:
             self._hotkey.stop()
         except Exception:
             pass
         self._hotkey = GlobalHotkey(combo, parent=self)
         self._hotkey.activated.connect(self._on_hotkey)
-        self._hotkey.start()
+        ok = self._hotkey.start()
+        self.state.hotkey_last_error = getattr(self._hotkey, "_last_error", "")
+        if not ok:
+            self._notify_hotkey_failed(combo, self.state.hotkey_last_error)
+        return ok
+
+    def _notify_hotkey_failed(self, combo: str, reason: str):
+        """热键注册失败时给出可见反馈（托盘消息优先，否则日志）。"""
+        msg = f"全局快捷键「{combo}」{reason or '注册失败'}，将无法使用。"
+        tray = getattr(self, "_tray", None)
+        if tray is not None:
+            try:
+                tray.showMessage("青柠待办", msg,
+                                 QSystemTrayIcon.MessageIcon.Warning, 6000)
+                return
+            except Exception:
+                pass
+        print(f"[全局快捷键] {msg}")
 
     def _on_hotkey(self):
         """全局快捷键触发：将主窗口唤到前台。"""

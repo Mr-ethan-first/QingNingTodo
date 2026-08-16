@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
 from src.theme import get_current_theme
 from src.ui_qt.dialogs import TodoDialog, GroupDialog, MoreTodoSettingsDialog
 from src.ui_qt.icons import icon
+from src.ui_qt.message_box import ThemedMessageBox
 from src.ui_qt.pages import PageBase
 from src.ui_qt.widgets import (
     badge, combo_box, hero_banner, primary_button, ghost_button,
@@ -672,10 +673,11 @@ class TodoPage(PageBase):
         self._refresh_list()
 
     def _delete_todo(self, td):
-        ret = QMessageBox.question(
-            self, "确认删除", f"确定要删除待办「{td['title']}」吗？",
+        ret = ThemedMessageBox.confirm(
+            self, "确认删除", f"确定要删除待办「{td['title']}」吗？删除后不可恢复。",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No)
+            QMessageBox.StandardButton.No,
+            destructive=True)
         if ret == QMessageBox.StandardButton.Yes:
             self.todo_dao.delete(td["id"])
             self._refresh_list()
@@ -743,14 +745,14 @@ class TodoPage(PageBase):
         today = datetime.date.today()
         existing = self.habit_checkin_dao.get_today(td["id"], today)
         if existing:
-            QMessageBox.information(
+            ThemedMessageBox.information(
                 self, "已打卡",
                 f"「{td['title']}」今日已完成打卡。")
             return
         now = datetime.datetime.now()
         actual = td.get("habit_target")
         self.habit_checkin_dao.checkin(td["id"], today, now, actual)
-        QMessageBox.information(
+        ThemedMessageBox.information(
             self, "打卡成功",
             f"「{td['title']}」今日打卡成功！")
         self._refresh_list()
@@ -758,16 +760,23 @@ class TodoPage(PageBase):
     # ---------- 专注历史记录 ----------
     def _show_focus_history(self, td):
         t = self._t
-        records = self.focus_dao.list_recent(100)
-        # 筛选该待办的记录
-        todo_records = [r for r in records if r.get("todo_id") == td["id"]]
+        # 直接按该待办查询，避免全局最近 100 条截断导致历史不完整
+        todo_records = self.focus_dao.list_by_todo(td["id"])
         dlg = _FocusHistoryDialog(t, td["title"], todo_records, self)
         dlg.exec()
 
     # ---------- 排序/移动 ----------
     def _sort_todo(self, td, direction):
-        todos = self._get_current_todos()
-        ids = [t["id"] for t in todos]
+        # 仅在同一分组内重排：列表在「全部」视图下按待办集分组展示，
+        # 而旧逻辑基于「全局扁平筛选列表」重排 sort_order，跨分组交换时
+        # 待办在其所属分组内的相对顺序不变，导致「上移/置顶」看似无效。
+        # 这里按目标待办所在分组（并遵循当前状态筛选）取同组待办进行重排。
+        gid = td.get("group_id") or 0
+        status = None if self.filter_status == 2 else self.filter_status
+        peers = self.todo_dao.list(status=status, group_id=gid)
+        ids = [t["id"] for t in peers]
+        if td["id"] not in ids:
+            return
         idx = ids.index(td["id"])
         if direction == "top":
             new_idx = 0
@@ -780,7 +789,7 @@ class TodoPage(PageBase):
         # 移动元素
         ids.pop(idx)
         ids.insert(new_idx, td["id"])
-        # 批量更新 sort_order
+        # 批量更新 sort_order（仅作用于同组待办，避免污染其他分组/全局顺序）
         for order, tid in enumerate(ids):
             self.todo_dao.update(tid, sort_order=order)
         self._refresh_list()

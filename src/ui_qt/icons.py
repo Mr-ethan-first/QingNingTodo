@@ -208,6 +208,25 @@ SVGS = {
         'a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9'
         'a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/>'
     ),
+    "question": _LINE.format(
+        '<circle cx="12" cy="12" r="9"/>'
+        '<path d="M12 17 H12.01" stroke-width="2.2"/>'
+        '<path d="M9.4 9 A2.6 2.6 0 0 1 12 6.4 A2.6 2.6 0 0 1 14.6 9 C14.6 10.8 13.4 11.7 12.3 12 H12.3"/>'
+    ),
+    "warning": _LINE.format(
+        '<path d="M10.3 3.9 L2.2 17 A2 2 0 0 0 3.8 20 H20.2 A2 2 0 0 0 21.8 17 L13.7 3.9 A2 2 0 0 0 10.3 3.9 Z"/>'
+        '<path d="M12 10 V14" stroke-width="2.2"/>'
+        '<path d="M12 17 H12.01" stroke-width="2.2"/>'
+    ),
+    "danger": _LINE.format(
+        '<circle cx="12" cy="12" r="9"/>'
+        '<path d="M9 9 L15 15" stroke-width="2.2"/>'
+        '<path d="M15 9 L9 15" stroke-width="2.2"/>'
+    ),
+    "success": _LINE.format(
+        '<circle cx="12" cy="12" r="9"/>'
+        '<path d="M8 12 L11 15 L16 9" stroke-width="2.2"/>'
+    ),
 }
 
 

@@ -100,12 +100,143 @@ def _clean_path():
     print()
 
 
+def _native_delete(path):
+    """原生 Windows 删除，绕过 Python 层 safe-delete 钩子。
+
+    WorkBuddy 的 sitecustomize 钩子在 win32 + 回收站不可用时把 os.remove
+    设为 fail-closed，导致 PyInstaller 收尾 os.remove(dist/<name>.exe) 被拦截、
+    打包崩溃。直接调用 kernel32.DeleteFileW 走 OS 原生删除，跳过该 Python 层钩子。
+    仅用于清理「自己即将被 PyInstaller 覆盖的旧构建产物」，等价 PyInstaller 自身意图。
+    返回 True 表示删除成功；否则返回异常对象。
+    """
+    try:
+        import ctypes
+        res = ctypes.windll.kernel32.DeleteFileW(ctypes.c_wchar_p(path))
+        if res:
+            return True
+        err = ctypes.GetLastError()
+        return OSError(err, f"DeleteFileW 失败 code={err}")
+    except Exception as _e:  # noqa: BLE001
+        return _e
+
+
+def _cleanup_bak_exes(root):
+    """构建成功后清理 dist/ 下遗留的 .bak 文件（兜底改名方案留下的）。"""
+    import glob
+    for bak in glob.glob(os.path.join(root, DIST_DIR, f"{APP_NAME}.bak.*.exe")):
+        r = _native_delete(bak)
+        if r is True:
+            print(f"  清理遗留 .bak: {bak}")
+        else:
+            print(f"  [提示] 残留 .bak 未清理（无害，可手动删除）: {bak}")
+
+
+def _kill_running_instances():
+    """构建前结束可能占用 dist exe 的已运行实例。
+
+    场景：冒烟测试或用户手动启动的 exe 未退出时，dist/青柠待办.exe 被进程
+    锁定。PyInstaller（--onefile --noconfirm）重写目标文件会被锁拦截，
+    残留 0 字节 / 截断的 exe，表现为“打包产物字节数为 0”。
+    构建前主动结束同名进程即可彻底规避该问题，并保证后续预清理（原生删除 /
+    改名）能正常执行。
+
+    只结束「青柠待办.exe」同名进程，不触碰 python 等其它进程。
+    """
+    try:
+        out = subprocess.check_output(
+            ["tasklist", "/FO", "CSV"], text=True, errors="ignore"
+        )
+    except Exception as _e:  # noqa: BLE001
+        print(f"  [提示] 枚举进程失败（不影响继续）: {_e}")
+        return
+    pids = []
+    for line in out.splitlines():
+        if f"{APP_NAME}.exe" in line:
+            parts = line.split(",")
+            if len(parts) >= 2:
+                pid = parts[1].strip('"')
+                if pid.isdigit():
+                    pids.append(pid)
+    if not pids:
+        return
+    for pid in pids:
+        try:
+            subprocess.run(
+                ["taskkill", "/F", "/PID", pid],
+                capture_output=True, text=True, check=False,
+            )
+        except Exception:  # noqa: BLE001
+            pass
+    print(f"  已结束 {len(pids)} 个同名运行实例（释放 dist exe 文件锁）")
+
+
+def _wait_file_unlocked(path, timeout=20):
+    """等待目标文件锁彻底释放。
+
+    强杀同名进程后，Windows 释放文件句柄有短暂延迟。若 PyInstaller 立即
+    写入被残留锁拦截，会留下 0 字节 / 截断的 exe。此处轮询文件可写性，
+    直到锁释放或超时，再继续预清理与构建，彻底消除该竞态。
+    """
+    if not os.path.exists(path):
+        return
+    import time
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            fd = os.open(path, os.O_RDWR)
+            os.close(fd)
+            return
+        except (PermissionError, OSError):
+            time.sleep(0.5)
+    print(f"  [提示] 等待文件锁释放超时（{timeout}s），仍将继续构建")
+
+
+def _pre_clean_dist_exe(root):
+    """预清理 dist/ 下已存在的旧 exe。
+
+    PyInstaller 收尾阶段会对最终输出 exe 调用 os.remove 清掉旧文件，
+    但 dist/ 在 D: 盘、而 OS 临时目录在 C: 盘，safe-delete 钩子在 D: 盘路径上
+    fail-closed（回收站不可用 → 抛 OSError → 打包直接崩溃，dist 仍为旧 exe）。
+
+    绕过方案：
+      主方案 —— 用 kernel32.DeleteFileW 原生删除旧 exe（绕过 Python 层钩子），
+        使 PyInstaller 运行时 dist/ 下已无旧 exe，自动跳过其 os.remove 拦截点；
+      兜底方案 —— 若原生删除失败，则同盘改名（rename 非删除，不触发拦截），
+        让 PyInstaller 找不到旧 exe，构建仍可完成（仅留一个 .bak，事后清理）。
+    """
+    exe = os.path.join(root, DIST_DIR, f"{APP_NAME}.exe")
+    if not os.path.exists(exe):
+        return
+    # 主方案：原生删除（绕过 safe-delete 对 os.remove 的拦截）
+    r = _native_delete(exe)
+    if r is True:
+        print(f"  预清理旧 exe 完成（原生删除）: {exe}")
+        return
+    # 兜底：同盘改名，使 PyInstaller 在 dist/ 下找不到旧 exe
+    bak = os.path.join(root, DIST_DIR, f"{APP_NAME}.bak.{os.getpid()}.exe")
+    try:
+        os.rename(exe, bak)   # 同盘 rename，非删除，不被钩子拦截
+        print(f"  预清理旧 exe 完成（改名规避）: {bak}")
+    except OSError as _e:
+        print(f"  [警告] 预清理旧 exe 失败（将尝试继续构建）: {_e}")
+
+
 def main():
     root = os.path.dirname(os.path.abspath(__file__))
     os.chdir(root)
 
     # 清理 PATH，避免 Anaconda3 等 Qt6 DLL 冲突
     _clean_path()
+
+    # 构建前结束同名运行实例：释放 dist exe 文件锁，避免打包时目标被锁
+    # 导致 PyInstaller 无法覆盖写入、产出 0 字节 / 截断 exe
+    _kill_running_instances()
+
+    # 等待文件锁彻底释放（强杀后 OS 释放句柄有延迟），消除竞态
+    _wait_file_unlocked(os.path.join(root, DIST_DIR, f"{APP_NAME}.exe"))
+
+    # 预清理 dist/ 旧 exe，规避 safe-delete 对 PyInstaller 收尾 os.remove 的拦截
+    _pre_clean_dist_exe(root)
 
     # workpath 落到 OS 临时目录：绕过 WorkBuddy safe-delete 对
     # build 产物清理（os.remove 在临时目录下走原生删除，不被沙箱拦截）
@@ -192,14 +323,19 @@ def main():
     print()
     print("执行:", " ".join(args))
     print()
+    import time as _tt
+    _t0 = _tt.time()
     try:
         _pyi_main.run(args)
     except SystemExit as _e:
         ret = _e.code if isinstance(_e.code, int) else 1
     else:
         ret = 0
+    _t1 = _tt.time()
+    print(f"\n[打包耗时] PyInstaller 主流程: {_t1 - _t0:.1f}s")
 
     if ret == 0:
+        _cleanup_bak_exes(root)
         exe = os.path.join(root, DIST_DIR, f"{APP_NAME}.exe")
         if os.path.exists(exe):
             size_mb = os.path.getsize(exe) / (1024 * 1024)

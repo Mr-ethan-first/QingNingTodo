@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 from src.audio_player import get_player
 from src.theme import get_current_theme, hex_rgba
 from src.ui_qt.icons import icon
+from src.ui_qt.message_box import ThemedMessageBox
 from src.ui_qt.pages import PageBase
 from src.ui_qt.toast import show_toast
 from src.ui_qt.widgets import CircularTimer, hero_banner
@@ -40,7 +41,7 @@ class FocusPage(PageBase):
         self.current_todo = None
         self.remaining = 0
         self.elapsed = 0
-        self.planned = 1500
+        self.planned = self._default_focus_seconds()
         self.start_time = None
         self.timer_type = 0
         self.noise_player = get_player()
@@ -73,6 +74,13 @@ class FocusPage(PageBase):
             return str(val)
         except Exception:
             return default
+
+    def _default_focus_seconds(self) -> int:
+        """读取默认专注时长（秒），异常或非数字时回退 1500。"""
+        try:
+            return int(self._get_setting("default_focus_duration", "1500"))
+        except (ValueError, TypeError):
+            return 1500
 
     def _random_motto(self) -> str:
         """从内置1000句诗文中随机选取一句（最长31字，单行展示）。"""
@@ -610,16 +618,19 @@ class FocusPage(PageBase):
         则默认取列表中第一条可用音源，确保「开启白噪音」配置真正生效。
         """
         try:
-            last_id = int(self._get_setting("last_noise_id", "0") or "0")
+            raw = (self._get_setting("last_noise_id", "") or "").strip()
             noises = self._noises()
             target = None
-            if last_id > 0:
-                for n in noises:
-                    if n["id"] == last_id and n.get("file_path"):
-                        target = n
-                        break
-            # 未显式选择音源但开启了背景音：默认取第一条可用音源
-            if target is None:
+            if raw:
+                last_id = int(raw) if raw.isdigit() else 0
+                if last_id > 0:
+                    for n in noises:
+                        if n["id"] == last_id and n.get("file_path"):
+                            target = n
+                            break
+                # last_id == 0：设置页 / 弹窗中显式选择「无」，不回退、不播放
+            else:
+                # 从未显式选择过：默认取第一条可用音源（保持历史回退行为）
                 for n in noises:
                     if n.get("file_path"):
                         target = n
@@ -755,11 +766,14 @@ class FocusPage(PageBase):
         dlg.exec()
         # 弹窗关闭后同步当前选中状态
         self._current_noise_id = dlg.selected_noise_id
-        if dlg.selected_noise_id and dlg.selected_noise_id > 0:
-            try:
-                self.settings_dao.set("last_noise_id", str(dlg.selected_noise_id))
-            except Exception:
-                pass
+        # 无论选「关闭」(None/0) 还是某个音源，都同步 last_noise_id，
+        # 使「关闭」真正停止自动播放（不再保留旧音源）。
+        try:
+            self.settings_dao.set(
+                "last_noise_id",
+                str(dlg.selected_noise_id) if dlg.selected_noise_id else "0")
+        except Exception:
+            pass
         # 根据是否正在播放白噪音，更新音乐按钮高亮态
         self._update_music_button()
 
@@ -921,11 +935,12 @@ class FocusPage(PageBase):
             return
         self._stop_guard()
         # 二次确认
-        ret = QMessageBox.question(
-            None, "确认终止",
+        ret = ThemedMessageBox.confirm(
+            self, "确认终止",
             "确定要终止本次专注吗？终止后记录将标记为未完成。",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No)
+            QMessageBox.StandardButton.No,
+            destructive=True)
         if ret != QMessageBox.StandardButton.Yes:
             return
         self._timer.stop()
@@ -1097,25 +1112,24 @@ class FocusPage(PageBase):
         self._show_break_dialog()
 
     def _show_break_dialog(self):
-        """弹出休息询问对话框。"""
-        msg_box = QMessageBox(self)
-        msg_box.setWindowTitle("休息确认")
-        msg_box.setText("是否进入休息？")
-        msg_box.setInformativeText(
-            f"休息时长：{self._get_effective_break_duration() // 60} 分钟")
-        btn_rest = msg_box.addButton("进入休息",
-                                      QMessageBox.ButtonRole.AcceptRole)
-        btn_skip = msg_box.addButton("跳过休息",
-                                      QMessageBox.ButtonRole.RejectRole)
-        btn_giveup = msg_box.addButton("放弃本次",
-                                        QMessageBox.ButtonRole.DestructiveRole)
-        msg_box.exec()
-        clicked = msg_box.clickedButton()
-        if clicked == btn_rest:
+        """弹出休息询问对话框（主题化自定义弹窗）。"""
+        result = ThemedMessageBox.custom(
+            self, "休息确认",
+            f"是否进入休息？休息时长：{self._get_effective_break_duration() // 60} 分钟",
+            buttons=[
+                ("skip", "跳过休息"),
+                ("rest", "进入休息"),
+                ("giveup", "放弃本次"),
+            ],
+            default_id="rest",
+            destructive_ids=["giveup"],
+            msg_type="question",
+        )
+        if result == "rest":
             self._enter_rest()
-        elif clicked == btn_skip:
+        elif result == "skip":
             self._on_no_rest()
-        elif clicked == btn_giveup:
+        elif result == "giveup":
             self._on_rest_giveup()
 
     def _on_no_rest(self):
@@ -1282,13 +1296,14 @@ class FocusPage(PageBase):
         todos = [t for t in self.todo_dao.list(status=0) if t.get("status") != 1]
         items = [(t["title"], t) for t in todos]
         if not items:
-            items = [("默认 25 分钟番茄钟", None)]
+            items = [("默认番茄钟", None)]
         item, ok = QInputDialog.getItem(self, "选择待办开始专注",
                                          "待办：", [i[0] for i in items], 0, False)
         if ok and item:
             td = next((t for n, t in items if n == item), None)
             if td is None:
-                td = {"id": None, "title": "默认番茄钟", "duration": 1500,
+                td = {"id": None, "title": "默认番茄钟",
+                      "duration": self._default_focus_seconds(),
                        "timer_type": 0, "break_duration": 300, "loop_count": 1,
                        "custom_break_duration": None}
             self.load_todo(td)
@@ -1425,7 +1440,7 @@ class FocusPage(PageBase):
             try:
                 shutil.copy2(file_path, dest_path)
             except Exception as ex:
-                QMessageBox.warning(self, "上传失败", f"复制文件失败：{ex}")
+                ThemedMessageBox.warning(self, "上传失败", f"复制文件失败：{ex}")
                 return
         else:
             # 非 WAV 格式（MP3/OGG/FLAC/M4A 等）统一转换为 WAV
@@ -1457,17 +1472,17 @@ class FocusPage(PageBase):
                     dest_path = os.path.join(custom_dir, dest_filename)
                     sf.write(dest_path, data, sr, subtype='PCM_16')
                 except ImportError:
-                    QMessageBox.warning(
+                    ThemedMessageBox.warning(
                         self, "格式不支持",
                         "仅支持 WAV 格式。请安装 imageio-ffmpeg 或 soundfile 库以支持更多格式。")
                     return
                 except Exception as ex:
-                    QMessageBox.warning(
+                    ThemedMessageBox.warning(
                         self, "格式转换失败",
                         f"音频格式转换失败：{ex}\n请尝试上传 WAV 格式。")
                     return
             except Exception as ex:
-                QMessageBox.warning(
+                ThemedMessageBox.warning(
                     self, "格式转换失败",
                     f"音频格式转换失败：{ex}\n请尝试上传 WAV 格式。")
                 return
@@ -1479,7 +1494,7 @@ class FocusPage(PageBase):
             self.noise_dao.add(display_name, rel_path,
                                self._current_noise_category, is_builtin=0)
         except Exception as ex:
-            QMessageBox.warning(self, "上传失败", f"保存到数据库失败：{ex}")
+            ThemedMessageBox.warning(self, "上传失败", f"保存到数据库失败：{ex}")
             return
 
         # 刷新当前分类按钮列表

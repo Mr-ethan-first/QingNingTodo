@@ -15,6 +15,37 @@ import sys
 # Add project root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
+def _install_safe_stdio():
+    """保证 PyInstaller --noconsole 模式下 stdout/stderr 不为 None。
+
+    Windows 单文件无窗口 exe 中 sys.stdout / sys.stderr 被设为 None，
+    任何 print() 或 sys.stderr.write() 都会触发
+    AttributeError: 'NoneType' object has no attribute 'write'。
+    本函数在应用启动时将其重定向到用户配置目录的 runtime.log（或 devnull），
+    使后续所有 print()/write() 安全。
+    """
+    if sys.stdout is not None and sys.stderr is not None:
+        return
+    try:
+        log_dir = os.environ.get("QINGNING_TODO_HOME",
+                                  os.path.join(os.path.expanduser("~"), ".qingning_todo"))
+        os.makedirs(log_dir, exist_ok=True)
+        log_path = os.path.join(log_dir, "runtime.log")
+        stream = open(log_path, "a", encoding="utf-8")
+        from datetime import datetime
+        stream.write(f"\n===== 启动 {datetime.now().isoformat()} =====\n")
+        stream.flush()
+    except Exception:
+        stream = open(os.devnull, "w", encoding="utf-8")
+    if sys.stdout is None:
+        sys.stdout = stream
+    if sys.stderr is None:
+        sys.stderr = stream
+
+
+_install_safe_stdio()
+
 from PyQt6.QtWidgets import QApplication
 
 from src.config import AppConfig
@@ -158,7 +189,7 @@ def _init_database(app_cfg: AppConfig):
                 return db
             except Exception as ex:
                 # MySQL 连接失败，回退到 SQLite
-                print(f"[main] MySQL 连接失败，回退到 SQLite：{ex}")
+                _log_debug(f"[main] MySQL 连接失败，回退到 SQLite：{ex}")
                 from PyQt6.QtWidgets import QMessageBox
                 QMessageBox.warning(
                     None, "数据库连接",
@@ -186,6 +217,12 @@ def main():
         a in ("--force", "--new-instance", "--no-single-instance")
         for a in sys.argv[1:]
     )
+    # 开机自启场景：带 --minimized 启动，窗口静默最小化到系统托盘，
+    # 不抢占用户开机后的注意力（仍可通过托盘/全局快捷键唤出）。
+    _START_MINIMIZED = any(
+        a in ("--minimized", "--hide", "--background")
+        for a in sys.argv[1:]
+    )
 
     # Windows 任务栏图标：设置 AppUserModelID，使任务栏显示独立图标而非 Python 默认图标
     try:
@@ -200,11 +237,11 @@ def main():
         brought = _bring_existing_window_to_front()
         _log_debug("Second instance: brought window to front, exiting now")
         # 给出明确提示，避免“静默退出、看起来像启动失败”的困惑
-        sys.stderr.write(
+        _log_debug(
             "[青柠待办] 检测到已有实例正在运行（单实例互斥锁被占用），已退出。\n"
             "  · 若上一个窗口已关闭但仍无法启动，请先在任务管理器结束“青柠待办”/python 进程。\n"
             "  · 如需立即强制启动一个新实例，可加参数运行：\n"
-            "      python -m src.main --force\n"
+            "      python -m src.main --force"
         )
         _log_debug(f"Second instance: brought={brought}")
         # 直接退出，不创建 QApplication / 不显示 toast
@@ -265,7 +302,12 @@ def main():
     cx = (screen.width() - 1180) // 2
     cy = (screen.height() - 760) // 2
     window.move(cx, cy)
-    window.show()
+    if _START_MINIMIZED:
+        # 静默进入系统托盘：窗口最小化（任务栏/托盘可见，仍可被托盘或
+        # 全局快捷键唤出）。若系统托盘不可用，至少最小化于任务栏，不会完全不可见。
+        window.showMinimized()
+    else:
+        window.show()
 
     return app.exec()
 

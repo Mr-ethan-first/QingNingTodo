@@ -7,6 +7,7 @@
 """
 import ctypes
 import threading
+import time
 from typing import Optional, Tuple
 
 from PyQt6.QtCore import QObject, pyqtSignal
@@ -81,6 +82,7 @@ class GlobalHotkey(QObject):
         self._mods = 0
         self._vk = 0
         self._running = False
+        self._last_error: str = ""
         self._thread: Optional[threading.Thread] = None
 
     @property
@@ -123,15 +125,31 @@ class GlobalHotkey(QObject):
         self._mods, self._vk = self.parse_combo(self._combo)
 
     def start(self) -> bool:
-        """启动热键监听；成功返回 True，不可用或已运行返回 False。"""
-        if not _AVAILABLE or self._running:
-            return _AVAILABLE and self._running
+        """启动热键监听；成功返回 True，不可用或已运行返回 False。
+
+        失败原因可通过 `last_error` 属性读取（用于向用户反馈）。
+        """
+        self._last_error = ""
+        if not _AVAILABLE:
+            self._last_error = "当前平台不支持系统全局热键"
+            return False
+        if self._running:
+            return True
         self._parse()
         if self._vk == 0:
+            self._last_error = "快捷键组合无法识别（缺少有效按键）"
             return False
         self._running = True
         self._thread = threading.Thread(target=self._run, daemon=True)
         self._thread.start()
+        # 等待工作线程完成窗口创建与热键注册（通常 <50ms），
+        # 以便同步拿到注册结果；超时则乐观视为成功。
+        for _ in range(50):
+            if self._hwnd is not None:
+                return True
+            if not self._running:
+                return False
+            time.sleep(0.01)
         return True
 
     def stop(self):
@@ -156,6 +174,7 @@ class GlobalHotkey(QObject):
             return
         self._hwnd = hwnd
         if not user32.RegisterHotKey(hwnd, self._id, self._mods, self._vk):  # type: ignore
+            self._last_error = "热键注册失败：可能被其他程序占用或系统限制"
             self._running = False
             try:
                 user32.DestroyWindow(hwnd)  # type: ignore

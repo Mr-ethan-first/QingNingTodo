@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import QFrame, QHBoxLayout, QLabel, QMenu, QMessageBox, QTo
 
 from src.ui_qt.dialogs import PlanDialog
 from src.ui_qt.icons import icon
+from src.ui_qt.message_box import ThemedMessageBox
 from src.ui_qt.pages import PageBase
 from src.ui_qt.widgets import (
     badge, hero_banner, primary_button, section_title,
@@ -139,9 +140,12 @@ class PlanPage(PageBase):
         dlg.exec()
 
     def _del_plan(self, p):
-        r = QMessageBox.question(self, "删除计划",
-                                 f"确认删除『{p['title']}』？",
-                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        r = ThemedMessageBox.confirm(
+            self, "删除计划",
+            f"确认删除『{p['title']}』？删除后不可恢复。",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+            destructive=True)
         if r == QMessageBox.StandardButton.Yes:
             self.plan_dao.delete(p["id"])
             self.refresh()

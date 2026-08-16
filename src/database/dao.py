@@ -163,6 +163,21 @@ class FocusRecordDAO(BaseDAO):
             (uid, limit),
         )
 
+    def list_by_todo(self, todo_id: int, limit: int = 500,
+                     user_id: Optional[int] = None) -> List[dict]:
+        """按待办查询专注记录。
+
+        单独接口而非对 list_recent(100) 做内存过滤：后者是「全局最近 N 条」，
+        当其他待办的记录挤占最近 100 条时，本待办较早的记录会被截断，
+        导致「专注历史记录」对话框数据不完整/看起来错乱。
+        """
+        uid = user_id or self._default_user_id()
+        return self.db.query_all(
+            "SELECT * FROM `focus_record` WHERE user_id=%s AND todo_id=%s "
+            "ORDER BY start_time DESC LIMIT %s",
+            (uid, todo_id, limit),
+        )
+
 
 # ---------------- 打断详情 ----------------
 class InterruptDetailDAO(BaseDAO):

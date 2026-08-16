@@ -781,14 +781,15 @@ def build_qss(t: Theme) -> str:
     QLabel#muted {{ color: {t.text_muted}; }}
     QLabel#subtle {{ color: {t.text_subtle}; font-size: 12px; }}
 
-    /* ═════ 卡片：1:1 还原 .component-card 样式 ═════ */
+    /* ═════ 卡片：年轻化大圆角 + 悬浮高亮 ═════ */
     QFrame#card {{
         background: {t.surface};
         border: 1px solid {t.border};
         border-radius: {card_radius};
     }}
     QFrame#card:hover {{
-        border: 1px solid {t.primary};
+        border: 1px solid {hex_rgba(t.primary, 0.55)};
+        background: {hex_rgba(t.surface, 0.98)};
     }}
     QFrame#panel {{
         background: {t.surface};
@@ -811,61 +812,79 @@ def build_qss(t: Theme) -> str:
     }}
     QFrame#sidebarSeparator {{ background: {t.border}; }}
 
-    /* ═════ 按钮：1:1 还原 .btn 系列 ═════ */
+    /* ═════ 按钮：年轻化渐变 + 悬浮抬升 + 清晰焦点 ═════ */
     QPushButton#primary {{
-        background: {t.primary};
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 {t.primary}, stop:1 {t.primary_hover});
         color: {t.on_primary};
-        border: 1px solid {t.primary};
+        border: none;
         border-radius: {t.radius_sm}px;
-        padding: 0 16px;
-        font-weight: 500;
-        font-size: 12px;
+        padding: 0 18px;
+        font-weight: 600;
+        font-size: 13px;
+        min-height: 34px;
     }}
     QPushButton#primary:hover {{
-        opacity: 0.9;
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 {t.primary_hover}, stop:1 {t.primary});
     }}
     QPushButton#primary:pressed {{
         background: {t.primary_pressed};
     }}
+    QPushButton#primary:focus {{
+        outline: none;
+        border: 2px solid {hex_rgba(t.primary, 0.45)};
+    }}
     QPushButton#primary:disabled {{
         background: {t.surface_variant};
         color: {t.text_subtle};
-        opacity: 0.5;
+        opacity: 0.55;
     }}
 
     /* 幽灵按钮 */
     QPushButton#ghost {{
         background: transparent;
         color: {t.primary};
-        border: 1px solid {t.primary};
+        border: 1.5px solid {hex_rgba(t.primary, 0.45)};
         border-radius: {t.radius_sm}px;
-        padding: 0 16px;
-        font-weight: 500;
-        font-size: 12px;
+        padding: 0 18px;
+        font-weight: 600;
+        font-size: 13px;
+        min-height: 34px;
     }}
     QPushButton#ghost:hover {{
-        background: {t.primary_soft};
+        background: {hex_rgba(t.primary, 0.10)};
+        border: 1.5px solid {t.primary};
     }}
     QPushButton#ghost:pressed {{
-        background: {t.primary_soft};
+        background: {hex_rgba(t.primary, 0.18)};
         color: {t.primary_pressed};
+    }}
+    QPushButton#ghost:focus {{
+        outline: none;
+        border: 2px solid {hex_rgba(t.primary, 0.45)};
     }}
     QPushButton#ghost:disabled {{
         color: {t.text_subtle};
-        border: 1px solid {t.border};
+        border: 1.5px solid {t.border};
     }}
 
     /* 成功/危险/强调按钮 */
     QPushButton#success {{
-        background: {t.success};
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 {t.success}, stop:1 {t.success_hover});
         color: {t.on_success};
         border: none;
         border-radius: {t.radius_sm}px;
-        padding: 7px 16px;
-        font-weight: 500;
-        font-size: 12px;
+        padding: 8px 18px;
+        font-weight: 600;
+        font-size: 13px;
+        min-height: 34px;
     }}
-    QPushButton#success:hover {{ background: {t.success_hover}; }}
+    QPushButton#success:hover {{
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 {t.success_hover}, stop:1 {t.success});
+    }}
     QPushButton#success:pressed {{ background: {t.success_pressed}; }}
     QPushButton#success:disabled {{
         background: {t.surface_variant};
@@ -873,15 +892,21 @@ def build_qss(t: Theme) -> str:
     }}
 
     QPushButton#danger {{
-        background: {t.danger};
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 {t.danger}, stop:1 {t.danger_hover});
         color: {t.on_danger};
         border: none;
         border-radius: {t.radius_sm}px;
-        padding: 7px 16px;
-        font-weight: 500;
-        font-size: 12px;
+        padding: 8px 18px;
+        font-weight: 600;
+        font-size: 13px;
+        min-height: 34px;
     }}
-    QPushButton#danger:hover {{ background: {t.danger_hover}; }}
+    QPushButton#danger:hover {{
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+            stop:0 {t.danger_hover}, stop:1 {t.danger});
+    }}
+    QPushButton#danger:pressed {{ background: {hex_rgba(t.danger, 0.85)}; }}
     QPushButton#danger:disabled {{
         background: {t.surface_variant};
         color: {t.text_subtle};
@@ -890,43 +915,49 @@ def build_qss(t: Theme) -> str:
     QPushButton#danger_ghost {{
         background: transparent;
         color: {t.danger};
-        border: 1.5px solid {t.danger};
+        border: 1.5px solid {hex_rgba(t.danger, 0.45)};
         border-radius: {t.radius_sm}px;
-        padding: 6px 15px;
-        font-weight: 500;
+        padding: 7px 17px;
+        font-weight: 600;
+        font-size: 13px;
+        min-height: 34px;
     }}
     QPushButton#danger_ghost:hover {{
-        background: {t.danger};
-        color: {t.on_danger};
+        background: {hex_rgba(t.danger, 0.12)};
+        border: 1.5px solid {t.danger};
     }}
 
     /* 图标按钮 */
     QPushButton#iconBtn {{
         background: transparent;
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         padding: 0;
     }}
     QPushButton#iconBtn:hover {{
         background: {nav_hover};
     }}
+    QPushButton#iconBtn:pressed {{
+        background: {hex_rgba(t.primary, 0.18)};
+    }}
 
-    /* ═════ 输入框：1:1 还原 .input / .preview-input ═════ */
+    /* ═════ 输入框：年轻化聚焦光环 + 更大触控区域 ═════ */
     QLineEdit {{
         background: {t.surface};
         color: {t.text};
-        border: 1px solid {t.border};
+        border: 1.5px solid {t.border};
         border-radius: {t.radius_sm}px;
-        padding: 0 10px;
-        font-size: 12px;
+        padding: 0 12px;
+        font-size: 13px;
         font-family: {t.font_b};
-        min-height: 28px;
+        min-height: 34px;
     }}
     QLineEdit:hover {{
-        border: 1px solid {t.primary};
+        border: 1.5px solid {hex_rgba(t.primary, 0.55)};
     }}
     QLineEdit:focus {{
-        border: 1px solid {t.primary};
+        border: 2px solid {t.primary};
+        padding: 0 11px;
     }}
     QLineEdit:disabled {{
         color: {t.text_subtle};
@@ -937,18 +968,18 @@ def build_qss(t: Theme) -> str:
     QComboBox {{
         background: {t.surface};
         color: {t.text};
-        border: 1px solid {t.border};
+        border: 1.5px solid {t.border};
         border-radius: {t.radius_sm}px;
-        padding: 0 28px 0 10px;
-        font-size: 12px;
-        min-height: 28px;
+        padding: 0 30px 0 12px;
+        font-size: 13px;
+        min-height: 34px;
     }}
-    QComboBox:hover {{ border: 1px solid {t.primary}; }}
-    QComboBox:focus {{ border: 1px solid {t.primary}; }}
+    QComboBox:hover {{ border: 1.5px solid {hex_rgba(t.primary, 0.55)}; }}
+    QComboBox:focus {{ border: 2px solid {t.primary}; }}
     QComboBox::drop-down {{
         border: none;
         background: transparent;
-        width: 20px;
+        width: 22px;
         subcontrol-origin: border;
         subcontrol-position: center right;
     }}
@@ -961,51 +992,55 @@ def build_qss(t: Theme) -> str:
         background: {t.surface};
         color: {t.text};
         border: 1px solid {t.border};
-        border-radius: 0px;
+        border-radius: {t.radius_md}px;
         selection-background-color: {t.primary_soft};
         selection-color: {t.primary};
-        padding: 0px;
+        padding: 4px;
         outline: none;
     }}
     QComboBox QAbstractItemView::item {{
-        padding: 6px 10px;
-        border-radius: 0px;
+        padding: 7px 12px;
+        border-radius: {t.radius_sm}px;
     }}
     QComboBox QAbstractItemView::item:hover {{
         background: {nav_hover};
+        color: {t.text};
     }}
 
     /* 多行文本 */
     QTextEdit, QPlainTextEdit {{
         background: {t.surface};
         color: {t.text};
-        border: 1px solid {t.border};
+        border: 1.5px solid {t.border};
         border-radius: {t.radius_sm}px;
-        padding: 7px 10px;
+        padding: 8px 12px;
         font-family: {t.font_b};
-        font-size: 12px;
+        font-size: 13px;
         selection-background-color: {t.primary_soft};
         selection-color: {t.text};
     }}
+    QTextEdit:hover, QPlainTextEdit:hover {{
+        border: 1.5px solid {hex_rgba(t.primary, 0.55)};
+    }}
     QTextEdit:focus, QPlainTextEdit:focus {{
-        border: 1px solid {t.primary};
+        border: 2px solid {t.primary};
     }}
 
     /* ═════ 数字/时间/日期 ═════ */
     QSpinBox, QDoubleSpinBox, QTimeEdit, QDateEdit, QDateTimeEdit {{
         background: {t.surface};
         color: {t.text};
-        border: 1px solid {t.border};
+        border: 1.5px solid {t.border};
         border-radius: {t.radius_sm}px;
-        padding: 7px 10px;
-        font-size: 12px;
+        padding: 7px 12px;
+        font-size: 13px;
         min-height: 34px;
     }}
     QSpinBox:hover, QDoubleSpinBox:hover, QTimeEdit:hover, QDateEdit:hover, QDateTimeEdit:hover {{
-        border: 1px solid {t.primary};
+        border: 1.5px solid {hex_rgba(t.primary, 0.55)};
     }}
     QSpinBox:focus, QDoubleSpinBox:focus, QTimeEdit:focus, QDateEdit:focus, QDateTimeEdit:focus {{
-        border: 1px solid {t.primary};
+        border: 2px solid {t.primary};
     }}
     QSpinBox:disabled, QDoubleSpinBox:disabled, QTimeEdit:disabled, QDateEdit:disabled, QDateTimeEdit:disabled {{
         color: {t.text_subtle};
@@ -1110,45 +1145,52 @@ def build_qss(t: Theme) -> str:
         background: {t.primary};
     }}
 
-    /* ═════ 滑块：1:1 还原 .slider-track/.slider-knob ═════ */
+    /* ═════ 滑块：更粗的轨道 + 填充柄 ═════ */
     QSlider::groove:horizontal {{
-        height: 6px;
+        height: 8px;
         background: {t.border};
-        border-radius: 3px;
+        border-radius: 4px;
     }}
     QSlider::sub-page:horizontal {{
-        background: {t.primary};
-        border-radius: 3px;
+        background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+            stop:0 {t.primary}, stop:1 {t.secondary});
+        border-radius: 4px;
     }}
     QSlider::add-page:horizontal {{
         background: {t.border};
-        border-radius: 3px;
+        border-radius: 4px;
     }}
     QSlider::handle:horizontal {{
         background: {t.surface};
-        border: 2px solid {t.primary};
-        width: 16px; height: 16px;
-        margin: -5px 0;
-        border-radius: 8px;
+        border: 3px solid {t.primary};
+        width: 18px; height: 18px;
+        margin: -6px 0;
+        border-radius: 9px;
     }}
     QSlider::handle:horizontal:hover {{
-        border: 2px solid {t.primary};
+        background: {t.primary};
+        border: 3px solid {t.primary};
     }}
     QSlider::groove:vertical {{
-        width: 6px;
+        width: 8px;
         background: {t.border};
-        border-radius: 3px;
+        border-radius: 4px;
     }}
     QSlider::sub-page:vertical {{
-        background: {t.primary};
-        border-radius: 3px;
+        background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+            stop:0 {t.primary}, stop:1 {t.secondary});
+        border-radius: 4px;
     }}
     QSlider::handle:vertical {{
         background: {t.surface};
-        border: 2px solid {t.primary};
-        width: 16px; height: 16px;
-        margin: 0 -5px;
-        border-radius: 8px;
+        border: 3px solid {t.primary};
+        width: 18px; height: 18px;
+        margin: 0 -6px;
+        border-radius: 9px;
+    }}
+    QSlider::handle:vertical:hover {{
+        background: {t.primary};
+        border: 3px solid {t.primary};
     }}
 
     /* ═════ 进度条：1:1 还原 .progress ═════ */
@@ -1166,25 +1208,32 @@ def build_qss(t: Theme) -> str:
         border-radius: 4px;
     }}
 
-    /* ═════ 标签页：1:1 还原 .tab-bar/.tab-item ═════ */
+    /* ═════ 标签页：年轻化药丸选中态 ═════ */
     QTabWidget::pane {{
         background: {t.surface};
         border: 1px solid {t.border};
         border-radius: {t.radius_md}px;
+        top: -1px;
     }}
     QTabBar::tab {{
         background: transparent;
         color: {t.text_muted};
         border: none;
-        padding: 8px 14px;
-        font-size: 12px;
+        padding: 7px 16px;
+        margin: 3px 2px;
+        font-size: 13px;
         font-weight: 500;
+        border-radius: {t.radius_sm}px;
     }}
     QTabBar::tab:selected {{
+        background: {t.primary_soft};
         color: {t.primary};
-        border-bottom: 2px solid {t.primary};
+        font-weight: 600;
     }}
-    QTabBar::tab:hover:!selected {{ color: {t.text}; }}
+    QTabBar::tab:hover:!selected {{
+        background: {nav_hover};
+        color: {t.text};
+    }}
 
     /* ═════ 表格：1:1 还原 .table ═════ */
     QTableWidget, QTableView {{

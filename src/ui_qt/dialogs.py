@@ -21,6 +21,7 @@ from src.database.connection import test_connection
 from src.theme import get_current_theme
 from src.tokens import type_scale
 from src.ui_qt.icons import icon
+from src.ui_qt.message_box import ThemedMessageBox
 from src.ui_qt.widgets import (
     CalendarDateEdit, combo_box, fade_in, ghost_button, glass_card, line_edit,
     primary_button, section_title, TweenSlider, ToggleSwitch, PlusMinusSpinBox,
@@ -1193,7 +1194,7 @@ class WhiteNoiseDialog(_CardDialog):
             try:
                 shutil.copy2(file_path, dest_path)
             except Exception as ex:
-                QMessageBox.warning(self, "上传失败", f"复制文件失败：{ex}")
+                ThemedMessageBox.warning(self, "上传失败", f"复制文件失败：{ex}")
                 return
         else:
             try:
@@ -1218,15 +1219,15 @@ class WhiteNoiseDialog(_CardDialog):
                     dest_path = os.path.join(custom_dir, dest_filename)
                     sf.write(dest_path, data, sr, subtype='PCM_16')
                 except ImportError:
-                    QMessageBox.warning(self, "格式不支持",
+                    ThemedMessageBox.warning(self, "格式不支持",
                         "仅支持 WAV 格式。请安装 imageio-ffmpeg 或 soundfile 库。")
                     return
                 except Exception as ex:
-                    QMessageBox.warning(self, "格式转换失败",
+                    ThemedMessageBox.warning(self, "格式转换失败",
                         f"音频格式转换失败：{ex}\n请尝试上传 WAV 格式。")
                     return
             except Exception as ex:
-                QMessageBox.warning(self, "格式转换失败",
+                ThemedMessageBox.warning(self, "格式转换失败",
                     f"音频格式转换失败：{ex}\n请尝试上传 WAV 格式。")
                 return
 
@@ -1234,7 +1235,7 @@ class WhiteNoiseDialog(_CardDialog):
         try:
             self.noise_dao.add(name, rel_path, self._current_category, is_builtin=0)
         except Exception as ex:
-            QMessageBox.warning(self, "上传失败", f"保存到数据库失败：{ex}")
+            ThemedMessageBox.warning(self, "上传失败", f"保存到数据库失败：{ex}")
             return
 
         self._show_tab(self._current_category)

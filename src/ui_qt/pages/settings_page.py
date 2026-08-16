@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (
 
 from src.theme import THEMES
 from src.ui_qt.icons import icon
+from src.ui_qt.message_box import ThemedMessageBox
 from src.ui_qt.pages import PageBase
 from src.ui_qt.widgets import (
     combo_box, line_edit, primary_button, ghost_button,
@@ -258,6 +259,21 @@ class SettingsPage(PageBase):
         self._setting_row(lay, "clock", "自定义休息时间",
                           "每次专注完成后的默认休息时长。",
                           self.sp_break)
+
+        self._sep(lay)
+
+        # 3e-2. 默认专注时长
+        focus_secs = int(self.settings_dao.get("default_focus_duration", "1500"))
+        self.sp_focus_dur = PlusMinusSpinBox()
+        self.sp_focus_dur.setRange(1, 180)
+        self.sp_focus_dur.setValue(focus_secs // 60)
+        self.sp_focus_dur.setUnitOutside("分钟")
+        self.sp_focus_dur.setFixedWidth(130)
+        self.sp_focus_dur.valueChanged.connect(
+            lambda v: self.settings_dao.set("default_focus_duration", str(v * 60)))
+        self._setting_row(lay, "timer", "默认专注时长",
+                          "每次开始专注的默认计时长度。",
+                          self.sp_focus_dur)
 
         self._sep(lay)
 
@@ -668,9 +684,11 @@ class SettingsPage(PageBase):
         val = self.cb_noise.currentData()
         self.settings_dao.set("background_music_path", val)
         # 联动：让「专注开始自动播放」使用设置页选定的白噪音，
-        # 与 WhiteNoiseDialog 共用 last_noise_id（实际播放链路读取的键）
-        if val and val != "0":
-            self.settings_dao.set("last_noise_id", val)
+        # 与 WhiteNoiseDialog 共用 last_noise_id（实际播放链路读取的键）。
+        # 选「无」时显式置为 "0"，确保计时开始不会回退播放其它音源，
+        # 使「白噪音（背景音乐）」设置的「无」选项真正生效。
+        self.settings_dao.set(
+            "last_noise_id", val if (val and val != "0") else "0")
 
     def _save_goals(self):
         try:
@@ -752,8 +770,9 @@ class SettingsPage(PageBase):
             try:
                 if checked:
                     if getattr(sys, 'frozen', False):
-                        # 打包后的 exe：直接运行
-                        cmd = f'"{sys.executable}"'
+                        # 打包后的 exe：直接运行，带 --minimized 启动参数
+                        # 使开机自启时静默进入系统托盘（不弹主窗口）
+                        cmd = f'"{sys.executable}" --minimized'
                     else:
                         # 开发环境：用 pythonw.exe（无控制台）运行 main.py
                         pythonw = os.path.join(
@@ -774,7 +793,7 @@ class SettingsPage(PageBase):
                             self.cb_auto_start.blockSignals(False)
                             self.settings_dao.set("auto_start", "false")
                             return
-                        cmd = f'"{pythonw}" "{main_py}"'
+                        cmd = f'"{pythonw}" "{main_py}" --minimized'
                     winreg.SetValueEx(key, app_name, 0, winreg.REG_SZ, cmd)
                 else:
                     try:
@@ -815,12 +834,19 @@ class SettingsPage(PageBase):
             self.lbl_shortcut.setText(combo)
         # 立即重新注册全局热键（若平台支持）
         cb = getattr(self.state, "on_shortcut_change", None)
+        ok = False
         if callable(cb):
             try:
-                cb(combo)
+                ok = bool(cb(combo))
             except Exception:
-                pass
-        self._toast("快捷键已保存并全局生效")
+                ok = False
+        if ok:
+            self._toast("快捷键已保存并全局生效")
+        else:
+            reason = getattr(self.state, "hotkey_last_error", "") or "未知原因"
+            self._toast(
+                f"快捷键已保存，但注册失败：{reason}\n"
+                f"可能被其他程序占用，或组合键无效。")
 
     def _export(self):
         path, _ = QFileDialog.getSaveFileName(
@@ -863,12 +889,13 @@ class SettingsPage(PageBase):
             return
 
         # 二次确认（仅在实际切换时）
-        ret = QMessageBox.question(
-            None, "确认切换",
+        ret = ThemedMessageBox.confirm(
+            self, "确认切换",
             f"切换到 {'MySQL' if want_mysql else 'SQLite'} 将清空所有历史数据"
             f"（待办、专注记录、设置等）。\n\n确定要继续吗？",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No)
+            QMessageBox.StandardButton.No,
+            destructive=True)
         if ret != QMessageBox.StandardButton.Yes:
             return
 
@@ -906,17 +933,18 @@ class SettingsPage(PageBase):
             if hasattr(db, '_seed_data'):
                 db._seed_data()
         except Exception as ex:
-            QMessageBox.warning(None, "数据清理", f"清理历史数据时出错：{ex}")
+            ThemedMessageBox.warning(self, "数据清理", f"清理历史数据时出错：{ex}")
 
         self._toast("数据库已切换，请重启应用以使用新的数据库后端。")
 
     def _clear_cache(self):
         """清除应用缓存（临时文件等）。"""
-        reply = QMessageBox.question(
+        reply = ThemedMessageBox.confirm(
             self, "清除缓存",
             "确定要清除所有缓存数据吗？\n不会影响数据库中的待办和设置。",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No)
+            QMessageBox.StandardButton.No,
+            destructive=False)
         if reply == QMessageBox.StandardButton.Yes:
             try:
                 cache_dir = os.path.join(os.path.expanduser("~"), ".qingning_cache")
@@ -929,7 +957,7 @@ class SettingsPage(PageBase):
 
     def _clear_all_data(self):
         """清除所有数据（需二次确认）。"""
-        reply1 = QMessageBox.warning(
+        reply1 = ThemedMessageBox.critical(
             self, "危险操作",
             "此操作将清除所有数据（待办、专注记录、设置等），不可恢复！\n\n"
             "确定要继续吗？",
@@ -996,7 +1024,7 @@ class SettingsPage(PageBase):
             except Exception:
                 pass
         # 兜底：帮助文档缺失时给出简要帮助
-        QMessageBox.information(
+        ThemedMessageBox.information(
             self, "帮助",
             "青柠待办 - 专注 · 致远\n\n"
             "待办清单：管理日常任务（双击进入专注计时）\n"
